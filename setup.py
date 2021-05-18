@@ -26,4 +26,7 @@ setup(
             "pytest>=3.7",
         ],
     },
+    url='https://github.com/neosergio/random-address',
+    author='Sergio Infante',
+    author_email='raulsergio9@gmail.com',
 )
