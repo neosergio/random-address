@@ -6,8 +6,9 @@ with open("README.md", 'r') as fh:
 
 setup(
     name='random-address',
-    version='0.0.1',
-    description='Returns a valid random address',
+    version='0.0.2',
+    description='Tool to retrieve a real random address '
+                'that geocode successfully',
     py_modules=['random_address'],
     package_dir={'': 'src'},
     classifiers=[
@@ -21,7 +22,7 @@ setup(
     ],
     long_description=long_description,
     long_description_content_type="text/markdown",
-    extras_require = {
+    extras_require={
         "dev": [
             "pytest>=3.7",
         ],
