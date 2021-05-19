@@ -6,11 +6,12 @@ with open("README.md", 'r') as fh:
 
 setup(
     name='random-address',
-    version='0.0.2',
+    version='0.0.11',
     description='Tool to retrieve a real random address '
                 'that geocode successfully',
-    py_modules=['random_address'],
-    package_dir={'': 'src'},
+    packages=['random_address'],
+    package_data={'random_address': ['addresses-us-all.json']},
+    include_package_data=True,
     classifiers=[
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.6",
