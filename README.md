@@ -6,6 +6,12 @@ The addresses were pulled from OpenAddress where the "Required attribute" field 
 
 This project was inspired by [Real, Random Address Data (RRAD)](https://github.com/EthanRBrown/rrad) project.
 
+![PyPI](https://img.shields.io/pypi/v/random-address)
+![PyPI - License](https://img.shields.io/pypi/l/random-address)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/random-address)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/random-address)
+![PyPI - Status](https://img.shields.io/pypi/status/random-address)
+
 ## Installation
 
 Run the following to install:
@@ -21,6 +27,12 @@ from random_address import real_random_address
 
 # Generate a dictionary with valid random address information
 real_random_address()
+```
+
+**Expected value example:**
+
+```
+{'address1': '210 Beachcomber Drive', 'address2': '', 'city': 'Pismo Beach', 'state': 'CA', 'postalCode': '93449', 'coordinates': {'lat': 35.169193, 'lng': -120.694434}}
 ```
 
 ## Attribution

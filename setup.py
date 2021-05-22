@@ -6,7 +6,7 @@ with open("README.md", 'r') as fh:
 
 setup(
     name='random-address',
-    version='0.0.11',
+    version='0.1.0',
     description='Tool to retrieve a real random address '
                 'that geocode successfully',
     packages=['random_address'],
