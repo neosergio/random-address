@@ -6,6 +6,7 @@ The addresses were pulled from OpenAddress where the "Required attribute" field 
 
 This project was inspired by [Real, Random Address Data (RRAD)](https://github.com/EthanRBrown/rrad) project.
 
+![Travis (.com)](https://img.shields.io/travis/com/neosergio/random-address)
 ![PyPI](https://img.shields.io/pypi/v/random-address)
 ![PyPI - License](https://img.shields.io/pypi/l/random-address)
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/random-address)
