@@ -1,3 +1,6 @@
+"""
+Setup file for tool to retrieve a real random address that geocode successfully
+"""
 from setuptools import setup
 
 
@@ -6,7 +9,7 @@ with open("README.md", 'r') as fh:
 
 setup(
     name='random-address',
-    version='0.1.1',
+    version='0.1.2',
     description='Tool to retrieve a real random address '
                 'that geocode successfully',
     packages=['random_address'],
