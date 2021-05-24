@@ -1,4 +1,4 @@
-name: flake8 Lint
+name: flake8 Lint and Pytest running
 
 on: [push, pull_request]
 

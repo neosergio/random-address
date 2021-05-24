@@ -9,14 +9,14 @@ with open("README.md", 'r') as fh:
 
 setup(
     name='random-address',
-    version='0.1.2',
+    version='1.0.0',
     description='Tool to retrieve a real random address '
                 'that geocode successfully',
     packages=['random_address'],
     package_data={'random_address': ['addresses-us-all.json']},
     include_package_data=True,
     classifiers=[
-        "Development Status :: 4 - Beta",
+        "Development Status :: 5 - Production/Stable",
         "Environment :: Console",
         "Intended Audience :: Developers",
         "Programming Language :: Python :: 3",
