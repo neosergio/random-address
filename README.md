@@ -32,6 +32,18 @@ from random_address import real_random_address
 real_random_address()
 ```
 
+There are other 2 other functions that can be used:
+```python
+>>> import random_address
+>>> random_address.real_random_address_by_state('CA')
+{'address1': '37600 Sycamore Street', 'address2': '', 'city': 'Newark', 'state': 'CA', 'postalCode': '94560', 'coordinates': {'lat': 37.5261943, 'lng': -122.0304698}}
+>>> random_address.real_random_address_by_postal_code('32409')
+{'address1': '711 Tashanna Lane', 'address2': '', 'city': 'Southport', 'state': 'FL', 'postalCode': '32409', 'coordinates': {'lat': 30.41437699999999, 'lng': -85.676568}}
+```
+
+
+
+
 **Expected value example:**
 
 ```

@@ -9,7 +9,7 @@ with open("README.md", 'r') as fh:
 
 setup(
     name='random-address',
-    version='1.0.0',
+    version='1.1.1',
     description='Tool to retrieve a real random address '
                 'that geocode successfully',
     packages=['random_address'],
@@ -40,4 +40,9 @@ setup(
     url='https://github.com/neosergio/random-address',
     author='Sergio Infante',
     author_email='raulsergio9@gmail.com',
+    project_urls={
+        'Issue Tracker': 'https://github.com/neosergio/random-address/issues',
+        'Source Code': 'https://github.com/neosergio/random-address',
+        'Changelog': 'https://github.com/neosergio/random-address/blob/main/CHANGELOG.md',
+    }
 )

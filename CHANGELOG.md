@@ -1,5 +1,12 @@
 # Changelog
 
+## [Unreleased]
+
+## [1.1.1] - 2021-05-27
+### Added
+- New function real_random_address_by_state to get results filtered by state code (two characters format. i,e CA, FL).
+- New function real_random_address_by_postal_code to get results filtered by postal code
+
 ## [1.0.0] - 2021-05-24
 ### Changed
 - Classifier about development status to stable
@@ -25,7 +32,8 @@
 ### Added
 - First public preview release.
 
-[Unreleased]: https://github.com/neosergio/random-address/releases/tag/v1.0.0...HEAD
+[Unreleased]: https://github.com/neosergio/random-address/compare/v1.1.1...main
+[1.1.1]: https://github.com/neosergio/random-address/compare/v0.1.2...v1.1.1
 [1.0.0]: https://github.com/neosergio/random-address/compare/v0.1.2...v1.0.0
 [0.1.2]: https://github.com/neosergio/random-address/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/neosergio/random-address/compare/v0.1.0...v0.1.1
