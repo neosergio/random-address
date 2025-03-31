@@ -32,23 +32,29 @@ from random_address import real_random_address
 real_random_address()
 ```
 
-There are other 2 other functions that can be used:
+There are other 3 functions that can be used:
 ```python
 >>> import random_address
 >>> random_address.real_random_address_by_state('CA')
 {'address1': '37600 Sycamore Street', 'address2': '', 'city': 'Newark', 'state': 'CA', 'postalCode': '94560', 'coordinates': {'lat': 37.5261943, 'lng': -122.0304698}}
 >>> random_address.real_random_address_by_postal_code('32409')
 {'address1': '711 Tashanna Lane', 'address2': '', 'city': 'Southport', 'state': 'FL', 'postalCode': '32409', 'coordinates': {'lat': 30.41437699999999, 'lng': -85.676568}}
+>>> random_address.real_random_address_by_city('Newark')
+{'address1': '37600 Sycamore Street', 'address2': '', 'city': 'Newark', 'state': 'CA', 'postalCode': '94560', 'coordinates': {'lat': 37.5261943, 'lng': -122.0304698}}
 ```
-
-
-
 
 **Expected value example:**
 
 ```
 {'address1': '210 Beachcomber Drive', 'address2': '', 'city': 'Pismo Beach', 'state': 'CA', 'postalCode': '93449', 'coordinates': {'lat': 35.169193, 'lng': -120.694434}}
 ```
+
+## Functions Overview
+
+- `real_random_address()`: Retrieve a random valid US address.
+- `real_random_address_by_state(state: str)`: Retrieve a random address filtered by US state code.
+- `real_random_address_by_postal_code(postal_code: str)`: Retrieve a random address filtered by US postal code.
+- `real_random_address_by_city(city: str)`: Retrieve a random address filtered by US city.
 
 ## Attribution
 
@@ -159,6 +165,10 @@ All data collected from the [OpenAddresses](https://openaddresses.io/) project, 
 * San Miguel County (CO)
 * City of Honolulu (HI)
 
+
+## Contributing
+
+Contributions are welcome! Feel free to submit pull requests, report issues, or suggest improvements.
 
 # Developing Random Address
 

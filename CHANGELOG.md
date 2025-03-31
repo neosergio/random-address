@@ -1,6 +1,15 @@
 # Changelog
 
 ## [Unreleased]
+## [1.2.0] - 2025-03-29
+### Added
+- New function `real_random_address_by_city` to retrieve addresses filtered by city name.
+- Improved documentation and examples in Google-style docstrings for all functions.
+- Explicit support for Python versions 3.10, 3.11, 3.12, and 3.13 added to classifiers and `python_requires`.
+
+### Fixed
+- Bug fix: Handled cases where city name might be missing in JSON data to prevent AttributeError when calling `.lower()`.
+- Enhanced test suite by adding more robust assertions and new test cases for validating returned address fields.
 
 ## [1.1.1] - 2021-05-27
 ### Added
@@ -32,7 +41,8 @@
 ### Added
 - First public preview release.
 
-[Unreleased]: https://github.com/neosergio/random-address/compare/v1.1.1...main
+[Unreleased]: https://github.com/neosergio/random-address/compare/v1.2.0...main
+[1.2.0]: https://github.com/neosergio/random-address/compare/v1.1.1...v1.2.0
 [1.1.1]: https://github.com/neosergio/random-address/compare/v0.1.2...v1.1.1
 [1.0.0]: https://github.com/neosergio/random-address/compare/v0.1.2...v1.0.0
 [0.1.2]: https://github.com/neosergio/random-address/compare/v0.1.1...v0.1.2
