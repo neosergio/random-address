@@ -12,7 +12,6 @@ This project was inspired by [Real, Random Address Data (RRAD)](https://github.c
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/random-address)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/random-address)
 ![PyPI - Status](https://img.shields.io/pypi/status/random-address)
-![Code Climate maintainability](https://img.shields.io/codeclimate/maintainability/neosergio/random-address)
 
 
 ## Installation
@@ -164,6 +163,7 @@ All data collected from the [OpenAddresses](https://openaddresses.io/) project, 
 * Pubelo County (CO)
 * San Miguel County (CO)
 * City of Honolulu (HI)
+* Arlington County (VA)
 
 
 ## Contributing
