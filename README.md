@@ -42,6 +42,35 @@ There are other 3 functions that can be used:
 {'address1': '37600 Sycamore Street', 'address2': '', 'city': 'Newark', 'state': 'CA', 'postalCode': '94560', 'coordinates': {'lat': 37.5261943, 'lng': -122.0304698}}
 ```
 
+These functions allow you to inspect the dataset contents:
+```python
+>>> random_address.list_available_states()
+['AK', 'CA', 'FL', 'VA', ...]
+
+>>> random_address.list_available_postal_codes()
+['32409', '93546', '94560', '99577', ...]
+
+>>> random_address.list_available_cities()
+['Mammoth Lakes', 'Newark', 'Panama City Beach', 'Southport', ...]
+
+>>> random_address.list_states_with_counts()
+{'CA': 1234, 'FL': 900, 'VA': 200, ...}
+
+>>> random_address.list_postal_codes_with_counts()
+{'32409': 10, '99577': 15, ...}
+
+>>> random_address.list_cities_with_counts()
+{'Panama City Beach': 6, 'Newark': 12, ...}
+
+>>> random_address.get_summary()
+{
+    'total_addresses': 43873,
+    'unique_states': 47,
+    'unique_cities': 1300,
+    'unique_postal_codes': 950
+}
+```
+
 **Expected value example:**
 
 ```
@@ -164,6 +193,17 @@ All data collected from the [OpenAddresses](https://openaddresses.io/) project, 
 * San Miguel County (CO)
 * City of Honolulu (HI)
 * Arlington County (VA)
+
+## Requesting New Location Data
+
+If you need addresses for a specific **city**, **state**, or **postal code** that is not yet included in the dataset, please open a new [GitHub Issue](https://github.com/neosergio/random-address/issues) describing your request.
+
+Requests will be evaluated and added **gradually**, in order to:
+
+- Keep the library size small and lightweight.
+- Ensure quality and functionality remain stable across versions.
+
+We appreciate your suggestions and contributions!
 
 
 ## Contributing

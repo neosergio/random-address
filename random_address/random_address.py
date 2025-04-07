@@ -8,6 +8,7 @@ import os
 import random
 import sys
 from typing import Any, Dict, List
+from collections import Counter
 
 logger = logging.getLogger(__name__)
 
@@ -152,3 +153,82 @@ def real_random_address_by_city(city: str) -> Dict[str, Any]:
         if addr.get("city") and addr.get("city").lower() == city.lower()
     ]
     return random.choice(filtered_data) if filtered_data else {}
+
+
+def list_available_states() -> List[str]:
+    """Get a sorted list of all unique US state codes in the dataset.
+
+    Returns:
+        List[str]: Alphabetically sorted list of unique state codes.
+    """
+    data = _get_address_dict_list()
+    return sorted({addr.get("state") for addr in data.get("addresses", []) if addr.get("state")})
+
+
+def list_available_postal_codes() -> List[str]:
+    """Get a sorted list of all unique postal codes in the dataset.
+
+    Returns:
+        List[str]: Alphabetically sorted list of unique postal codes.
+    """
+    data = _get_address_dict_list()
+    return sorted({addr.get("postalCode") for addr in data.get("addresses", []) if addr.get("postalCode")})
+
+
+def list_available_cities() -> List[str]:
+    """Get a sorted list of all unique city names in the dataset.
+
+    Returns:
+        List[str]: Alphabetically sorted list of unique cities.
+    """
+    data = _get_address_dict_list()
+    return sorted({addr.get("city") for addr in data.get("addresses", []) if addr.get("city")})
+
+
+def list_states_with_counts() -> Dict[str, int]:
+    """Get a dictionary of all state codes with their corresponding address counts.
+
+    Returns:
+        Dict[str, int]: Dictionary with state codes as keys and counts as values.
+    """
+    data = _get_address_dict_list()
+    states = [addr.get("state") for addr in data.get("addresses", []) if addr.get("state")]
+    return dict(Counter(states))
+
+
+def list_postal_codes_with_counts() -> Dict[str, int]:
+    """Get a dictionary of all postal codes with their corresponding address counts.
+
+    Returns:
+        Dict[str, int]: Dictionary with postal codes as keys and counts as values.
+    """
+    data = _get_address_dict_list()
+    postals = [addr.get("postalCode") for addr in data.get("addresses", []) if addr.get("postalCode")]
+    return dict(Counter(postals))
+
+
+def list_cities_with_counts() -> Dict[str, int]:
+    """Get a dictionary of all city names with their corresponding address counts.
+
+    Returns:
+        Dict[str, int]: Dictionary with city names as keys and counts as values.
+    """
+    data = _get_address_dict_list()
+    cities = [addr.get("city") for addr in data.get("addresses", []) if addr.get("city")]
+    return dict(Counter(cities))
+
+
+def get_summary() -> Dict[str, Any]:
+    """Get a summary of the address dataset.
+
+    Returns:
+        Dict[str, Any]: Dictionary summarizing number of addresses, states, cities, and postal codes.
+    """
+    data = _get_address_dict_list()
+    addresses = data.get("addresses", [])
+    return {
+        "total_addresses": len(addresses),
+        "unique_states": len({addr.get("state") for addr in addresses if addr.get("state")}),
+        "unique_cities": len({addr.get("city") for addr in addresses if addr.get("city")}),
+        "unique_postal_codes": len({addr.get("postalCode") for addr in addresses if addr.get("postalCode")}),
+    }

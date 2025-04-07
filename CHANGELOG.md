@@ -1,7 +1,14 @@
 # Changelog
 
-## [Unreleased]
+## [1.3.0] - 2025-04-07
 ### Added
+- Added functions `list_available_states`, `list_available_postal_codes`, and `list_available_cities` to explore dataset content.
+- Added functions `list_states_with_counts`, `list_postal_codes_with_counts`, and `list_cities_with_counts` to get frequency distributions.
+- Added function `get_summary` to retrieve dataset-wide stats like total addresses, and number of unique states, cities, and postal codes.
+
+## [1.2.1] - 2025-03-31
+### Added
+- Added addresses dataset for Arlington County, Virginia (VA).
 - Script added to randomly select and transform addresses from geojson dataset to desired JSON format.
 - Script added to convert `addresses-us-all.json` to its minified version `addresses-us-all.min.json`.
 
@@ -9,10 +16,6 @@
 - GitHub Actions workflows updated to fix compatibility issues with Python 3.10 and later.
 - Fixed pylint warnings related to encoding specification when opening files and lazy formatting for logging messages.
 - Fixed pytest import error by installing the package in editable mode within GitHub Actions workflow.
-
-## [1.2.1] - 2025-03-31
-### Added
-- Added addresses dataset for Arlington County, Virginia (VA).
 
 ## [1.2.0] - 2025-03-29
 ### Added
@@ -54,7 +57,7 @@
 ### Added
 - First public preview release.
 
-[Unreleased]: https://github.com/neosergio/random-address/compare/v1.2.1...main
+[1.3.0]: https://github.com/neosergio/random-address/compare/v1.2.1...v1.3.0
 [1.2.1]: https://github.com/neosergio/random-address/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/neosergio/random-address/compare/v1.1.1...v1.2.0
 [1.1.1]: https://github.com/neosergio/random-address/compare/v0.1.2...v1.1.1
