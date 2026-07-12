@@ -1,0 +1,99 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+
+[project]
+name = "random-address"
+version = "2.0.0"
+description = "Retrieve real random US addresses that geocode successfully"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+
+authors = [
+    { name = "Sergio Infante", email = "raulsergio9@gmail.com" }
+]
+
+keywords = [
+    "address",
+    "random",
+    "fake-data",
+    "test-data",
+    "fixtures",
+    "geocoding",
+    "openaddresses",
+]
+
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Software Development :: Testing",
+    "Topic :: Utilities",
+    "Typing :: Typed",
+]
+
+dependencies = []
+
+
+[project.optional-dependencies]
+dev = [
+    "build>=1.2",
+    "pytest>=8",
+    "ruff>=0.6",
+    "twine>=6",
+]
+
+
+[project.scripts]
+random-address = "random_address.cli:main"
+
+
+[project.urls]
+Homepage = "https://github.com/neosergio/random-address"
+Repository = "https://github.com/neosergio/random-address"
+Issues = "https://github.com/neosergio/random-address/issues"
+Changelog = "https://github.com/neosergio/random-address/blob/main/CHANGELOG.md"
+
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+
+[tool.setuptools.package-data]
+random_address = ["py.typed", "data/*.json"]
+
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = [
+    "-ra",
+    "-q",
+]
+
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "F",    # pyflakes
+    "I",    # isort
+    "UP",   # pyupgrade
+    "B",    # flake8-bugbear
+    "SIM",  # flake8-simplify
+    "RUF",  # ruff-specific
+]

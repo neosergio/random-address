@@ -1,0 +1,76 @@
+"""Loading and indexing of the bundled address dataset.
+
+The dataset is read from disk exactly once per process and then kept in memory.
+Lookup indexes are built lazily on first use, so filtering by state, city or
+postal code is a dictionary hit rather than a scan over every address.
+"""
+
+from __future__ import annotations
+
+import json
+from collections import defaultdict
+from functools import cache
+from importlib import resources
+from typing import Literal, TypeAlias
+
+from .types import Address
+
+DATA_FILE = ("data", "addresses-us.min.json")
+
+Field: TypeAlias = Literal["state", "city", "postal_code"]
+
+FIELDS: tuple[Field, ...] = ("state", "city", "postal_code")
+
+
+def normalize(field: Field, value: str) -> str:
+    """Put a filter value into the same form used by the lookup indexes.
+
+    State codes are compared upper-cased and city names case-folded, so that
+    ``"ca"`` and ``"newark"`` match the same addresses as ``"CA"`` and
+    ``"Newark"``.
+    """
+    if field == "state":
+        return value.strip().upper()
+    if field == "city":
+        return value.strip().casefold()
+    return value.strip()
+
+
+@cache
+def load_addresses() -> tuple[Address, ...]:
+    """Return every address in the bundled dataset.
+
+    The result is cached, so the JSON file is parsed only on the first call.
+    """
+    source = resources.files(__package__).joinpath(*DATA_FILE)
+    with source.open("r", encoding="utf-8") as handle:
+        payload = json.load(handle)
+    return tuple(payload["addresses"])
+
+
+@cache
+def index(field: Field) -> dict[str, tuple[Address, ...]]:
+    """Return a mapping from a normalized field value to its addresses."""
+    buckets: dict[str, list[Address]] = defaultdict(list)
+    for address in load_addresses():
+        value = address.get(field)
+        if value:
+            buckets[normalize(field, value)].append(address)
+    return {key: tuple(addresses) for key, addresses in buckets.items()}
+
+
+def matches(address: Address, field: Field, value: str) -> bool:
+    """Report whether an address's field equals ``value`` after normalization."""
+    own_value = address.get(field)
+    if not own_value:
+        return False
+    return normalize(field, own_value) == normalize(field, value)
+
+
+def clear_caches() -> None:
+    """Drop the cached dataset and indexes.
+
+    Only needed by the test suite, which swaps the dataset out for fixtures.
+    """
+    load_addresses.cache_clear()
+    index.cache_clear()

@@ -6,7 +6,6 @@ The addresses were pulled from OpenAddress where the "Required attribute" field 
 
 This project was inspired by [Real, Random Address Data (RRAD)](https://github.com/EthanRBrown/rrad) project.
 
-![Travis (.com)](https://img.shields.io/travis/com/neosergio/random-address)
 ![PyPI](https://img.shields.io/pypi/v/random-address)
 ![PyPI - License](https://img.shields.io/pypi/l/random-address)
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/random-address)
@@ -22,67 +21,113 @@ Run the following to install:
 $ pip install random-address
 ```
 
+Requires Python 3.10 or newer.
+
 ## Usage
 
 ```python
-from random_address import real_random_address
-
-# Generate a dictionary with valid random address information
-real_random_address()
+>>> from random_address import real_random_address
+>>> real_random_address()
+{'address1': '210 Beachcomber Drive', 'address2': '', 'city': 'Pismo Beach', 'state': 'CA',
+ 'postal_code': '93449', 'coordinates': {'lat': 35.169193, 'lng': -120.694434}}
 ```
 
-There are other 3 functions that can be used:
+Filters combine, so you can narrow by any mix of state, city and postal code. State codes and
+city names are matched case-insensitively.
+
+```python
+>>> real_random_address(state='CA')
+>>> real_random_address(city='Newark')
+>>> real_random_address(postal_code='32409')
+>>> real_random_address(state='CA', city='Newark')
+```
+
+If nothing matches, a `NoMatchingAddressError` is raised rather than an empty dictionary being
+returned, so a typo in a filter fails loudly:
+
+```python
+>>> real_random_address(state='ZZ')
+NoMatchingAddressError: No address matches state='ZZ'
+```
+
+### Reproducible fixtures
+
+Pass a `seed` to get the same address every time. The seed drives a private generator, so it
+never disturbs the global `random` stream the rest of your process draws from.
+
+```python
+>>> real_random_address(seed=42) == real_random_address(seed=42)
+True
+```
+
+### Several addresses at once
+
+```python
+>>> from random_address import real_random_addresses
+>>> real_random_addresses(5, state='FL', seed=42)
+[{...}, {...}, {...}, {...}, {...}]
+```
+
+Results are distinct by default. Pass `unique=False` to sample with replacement when you want
+more addresses than the filters can supply.
+
+### Inspecting the dataset
+
 ```python
 >>> import random_address
->>> random_address.real_random_address_by_state('CA')
-{'address1': '37600 Sycamore Street', 'address2': '', 'city': 'Newark', 'state': 'CA', 'postalCode': '94560', 'coordinates': {'lat': 37.5261943, 'lng': -122.0304698}}
->>> random_address.real_random_address_by_postal_code('32409')
-{'address1': '711 Tashanna Lane', 'address2': '', 'city': 'Southport', 'state': 'FL', 'postalCode': '32409', 'coordinates': {'lat': 30.41437699999999, 'lng': -85.676568}}
->>> random_address.real_random_address_by_city('Newark')
-{'address1': '37600 Sycamore Street', 'address2': '', 'city': 'Newark', 'state': 'CA', 'postalCode': '94560', 'coordinates': {'lat': 37.5261943, 'lng': -122.0304698}}
+>>> random_address.list_states()
+['AK', 'AL', 'AR', 'AZ', 'CA', ...]
+>>> random_address.state_counts()
+{'AK': 174, 'AL': 193, 'AR': 190, 'AZ': 199, 'CA': 332, ...}
+>>> random_address.summary()
+{'total_addresses': 3270, 'unique_states': 17, 'unique_cities': 421, 'unique_postal_codes': 692}
 ```
 
-These functions allow you to inspect the dataset contents:
-```python
->>> random_address.list_available_states()
-['AK', 'CA', 'FL', 'VA', ...]
+`list_cities()`, `list_postal_codes()`, `city_counts()` and `postal_code_counts()` work the
+same way.
 
->>> random_address.list_available_postal_codes()
-['32409', '93546', '94560', '99577', ...]
+## Command line
 
->>> random_address.list_available_cities()
-['Mammoth Lakes', 'Newark', 'Panama City Beach', 'Southport', ...]
+```bash
+$ random-address
+1233 Paradise Lane, Fayetteville, AR 72701
 
->>> random_address.list_states_with_counts()
-{'CA': 1234, 'FL': 900, 'VA': 200, ...}
-
->>> random_address.list_postal_codes_with_counts()
-{'32409': 10, '99577': 15, ...}
-
->>> random_address.list_cities_with_counts()
-{'Panama City Beach': 6, 'Newark': 12, ...}
-
->>> random_address.get_summary()
-{
-    'total_addresses': 43873,
-    'unique_states': 47,
-    'unique_cities': 1300,
-    'unique_postal_codes': 950
-}
-```
-
-**Expected value example:**
-
-```
-{'address1': '210 Beachcomber Drive', 'address2': '', 'city': 'Pismo Beach', 'state': 'CA', 'postalCode': '93449', 'coordinates': {'lat': 35.169193, 'lng': -120.694434}}
+$ random-address --state CA --count 2 --format json
+$ random-address --state FL --count 50 --format csv > fixtures.csv
+$ random-address states
+$ random-address summary
 ```
 
 ## Functions Overview
 
-- `real_random_address()`: Retrieve a random valid US address.
-- `real_random_address_by_state(state: str)`: Retrieve a random address filtered by US state code.
-- `real_random_address_by_postal_code(postal_code: str)`: Retrieve a random address filtered by US postal code.
-- `real_random_address_by_city(city: str)`: Retrieve a random address filtered by US city.
+- `real_random_address(*, state=None, city=None, postal_code=None, seed=None)`: one address, optionally filtered.
+- `real_random_addresses(count=1, *, state=None, city=None, postal_code=None, seed=None, unique=True)`: several addresses.
+- `list_states()`, `list_cities()`, `list_postal_codes()`: the values present in the dataset.
+- `state_counts()`, `city_counts()`, `postal_code_counts()`: how many addresses each value has.
+- `summary()`: dataset-wide totals.
+
+The package ships type information (`py.typed`), so `Address` and `Coordinates` are available
+to type checkers and editors.
+
+## Upgrading from 1.x
+
+Version 2.0 replaced the four `real_random_address_by_*` functions with filter arguments and
+renamed the `postalCode` key to `postal_code`.
+
+| 1.x | 2.0 |
+| --- | --- |
+| `real_random_address_by_state('CA')` | `real_random_address(state='CA')` |
+| `real_random_address_by_city('Newark')` | `real_random_address(city='Newark')` |
+| `real_random_address_by_postal_code('32409')` | `real_random_address(postal_code='32409')` |
+| `list_available_states()` | `list_states()` |
+| `list_available_cities()` | `list_cities()` |
+| `list_available_postal_codes()` | `list_postal_codes()` |
+| `list_states_with_counts()` | `state_counts()` |
+| `list_cities_with_counts()` | `city_counts()` |
+| `list_postal_codes_with_counts()` | `postal_code_counts()` |
+| `get_summary()` | `summary()` |
+| `address['postalCode']` | `address['postal_code']` |
+| an empty `{}` when nothing matched | `NoMatchingAddressError` |
 
 ## Attribution
 
@@ -212,8 +257,17 @@ Contributions are welcome! Feel free to submit pull requests, report issues, or 
 
 # Developing Random Address
 
-To install random-address, along the tools you need to develop and run tests, run the following in your virtualenv:
+To install random-address along with the tools needed to develop and run tests, run the
+following in your virtualenv:
 
 ```bash
-$ pip install -e .[dev]
+$ pip install -e ".[dev]"
+```
+
+Then:
+
+```bash
+$ pytest              # run the tests
+$ ruff check .        # lint
+$ ruff format .       # format
 ```
