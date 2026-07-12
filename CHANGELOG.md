@@ -1,5 +1,34 @@
 # Changelog
 
+## [2.0.0] - 2026-07-12
+
+This is a breaking release. See "Upgrading from 1.x" in the README for the full mapping from
+the old function names to the new ones.
+
+### Changed
+- **The four `real_random_address_by_*` functions are now filter arguments.** `real_random_address(state='CA', city='Newark')` combines filters, which was not previously possible. State codes and city names now match case-insensitively, and surrounding whitespace is ignored.
+- **The `postalCode` key on returned addresses is now `postal_code`.**
+- **No match now raises `NoMatchingAddressError` instead of returning an empty dict.** A falsy `{}` made typos such as `state='Ca'` fail silently.
+- Dataset introspection functions were renamed: `list_available_states` to `list_states`, `list_states_with_counts` to `state_counts`, `get_summary` to `summary`, and so on for cities and postal codes.
+- Seeding: results are now drawn from a generator private to this package. Seeding the global `random` module no longer changes what these functions return; pass `seed=` instead.
+- Minimum supported Python is now 3.10.
+
+### Added
+- `real_random_addresses(count)` returns several addresses at once, distinct by default, with `unique=False` to sample with replacement.
+- A `seed` argument on both lookup functions makes fixtures reproducible without touching the global random state.
+- A `random-address` command line interface, with `--state`, `--city`, `--postal-code`, `--count`, `--seed` and `--format text|json|csv`, plus `states`, `cities`, `postal-codes` and `summary` subcommands.
+- Type information is now shipped (`py.typed`), exposing the `Address`, `Coordinates` and `Summary` types to type checkers and editors.
+
+### Fixed
+- `real_random_address()` raised `IndexError` on an empty dataset despite documenting that it returned `{}`. It now raises `NoMatchingAddressError`, consistently with every other lookup.
+- The package no longer re-exports the standard library. A bare `from .random_address import *` had been leaking `os`, `sys`, `json`, `random`, `logging` and `Counter` as public attributes of `random_address`.
+- The dataset is read from disk and indexed once per process instead of being re-parsed on every single call. A thousand filtered lookups went from roughly 3.4 seconds to under 2 milliseconds.
+- Addresses are loaded through `importlib.resources` rather than by deriving a path from `sys.modules`, which failed for zipped and frozen installs.
+- Every record in the dataset now has the same six keys. Twenty Vermont-area records were missing `city` entirely; their city is now an empty string. They remain reachable by state and postal code, and are left out of the city listings.
+
+### Removed
+- Travis CI, `tox.ini`, `setup.py`, `setup.cfg` and `MANIFEST.in`, replaced by a PEP 621 `pyproject.toml`, ruff, and GitHub Actions for testing (Python 3.10 to 3.14) and for publishing to PyPI via Trusted Publishing.
+
 ## [1.3.0] - 2025-04-07
 ### Added
 - Added functions `list_available_states`, `list_available_postal_codes`, and `list_available_cities` to explore dataset content.
@@ -57,6 +86,7 @@
 ### Added
 - First public preview release.
 
+[2.0.0]: https://github.com/neosergio/random-address/compare/v1.3.0...v2.0.0
 [1.3.0]: https://github.com/neosergio/random-address/compare/v1.2.1...v1.3.0
 [1.2.1]: https://github.com/neosergio/random-address/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/neosergio/random-address/compare/v1.1.1...v1.2.0

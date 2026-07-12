@@ -1,0 +1,60 @@
+name: Verify publish setup
+
+# Run this by hand before tagging a release. It uploads nothing. It mints the
+# same OIDC token the publish workflow would send to PyPI and prints the claims,
+# so you can compare them against the Trusted Publisher configured at
+# https://pypi.org/manage/project/random-address/settings/publishing/
+#
+# The claims must match that configuration exactly, in particular `environment`.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  verify:
+    name: Show the claims PyPI will check
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Build and check the distribution metadata
+        run: |
+          pip install build twine
+          python -m build
+          twine check dist/*
+
+      - name: Print the OIDC claims
+        run: |
+          set -euo pipefail
+          response=$(curl -sSf \
+            -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=pypi")
+          python3 - "$response" <<'PY'
+          import base64
+          import json
+          import sys
+
+          token = json.loads(sys.argv[1])["value"]
+          payload = token.split(".")[1]
+          payload += "=" * (-len(payload) % 4)
+          claims = json.loads(base64.urlsafe_b64decode(payload))
+
+          print("PyPI will check these claims:\n")
+          for claim in (
+              "repository_owner",
+              "repository",
+              "job_workflow_ref",
+              "environment",
+          ):
+              print(f"  {claim}: {claims.get(claim, '<absent>')}")
+          print("\nThe Trusted Publisher on PyPI must name the same owner, repository,")
+          print("workflow file (publish.yml) and environment. An `environment` of")
+          print("<absent> here while PyPI expects one is the usual cause of a failed tag.")
+          PY

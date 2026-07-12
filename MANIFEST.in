@@ -1,3 +1,0 @@
-include *.txt
-recursive-include random_address *.json
-recursive-include tests *.py
