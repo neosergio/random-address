@@ -49,6 +49,10 @@ jobs:
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: https://test.pypi.org/legacy/
+          # TestPyPI versions are immutable too. Without this, rehearsing the
+          # same version twice fails on the upload rather than on anything
+          # worth learning about.
+          skip-existing: true
 
   pypi:
     name: Publish to PyPI
