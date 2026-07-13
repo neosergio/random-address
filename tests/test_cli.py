@@ -8,7 +8,7 @@ import pytest
 
 from random_address.cli import main
 
-from .conftest import address
+from .conftest import InstallDataset, address
 
 
 def run(capsys: pytest.CaptureFixture[str], *argv: str) -> tuple[int, str, str]:
@@ -19,30 +19,34 @@ def run(capsys: pytest.CaptureFixture[str], *argv: str) -> tuple[int, str, str]:
 
 
 class TestGet:
-    def test_bare_invocation_prints_one_address(self, capsys) -> None:
+    def test_bare_invocation_prints_one_address(self, capsys: pytest.CaptureFixture[str]) -> None:
         code, out, _ = run(capsys)
 
         assert code == 0
         assert len(out.splitlines()) == 1
 
-    def test_filters_without_naming_the_get_command(self, capsys) -> None:
+    def test_filters_without_naming_the_get_command(
+        self, capsys: pytest.CaptureFixture[str]
+    ) -> None:
         code, out, _ = run(capsys, "--state", "CA")
 
         assert code == 0
         assert ", CA " in out
 
-    def test_count_prints_one_address_per_line(self, capsys) -> None:
+    def test_count_prints_one_address_per_line(self, capsys: pytest.CaptureFixture[str]) -> None:
         _, out, _ = run(capsys, "--state", "FL", "--count", "3")
 
         assert len(out.splitlines()) == 3
 
-    def test_seed_makes_output_reproducible(self, capsys) -> None:
+    def test_seed_makes_output_reproducible(self, capsys: pytest.CaptureFixture[str]) -> None:
         _, first, _ = run(capsys, "--seed", "42", "--count", "3")
         _, second, _ = run(capsys, "--seed", "42", "--count", "3")
 
         assert first == second
 
-    def test_json_format_emits_an_object_for_a_single_address(self, capsys) -> None:
+    def test_json_format_emits_an_object_for_a_single_address(
+        self, capsys: pytest.CaptureFixture[str]
+    ) -> None:
         _, out, _ = run(capsys, "--format", "json", "--state", "CA")
 
         payload = json.loads(out)
@@ -50,7 +54,9 @@ class TestGet:
         assert isinstance(payload, dict)
         assert payload["state"] == "CA"
 
-    def test_json_format_emits_an_array_for_several_addresses(self, capsys) -> None:
+    def test_json_format_emits_an_array_for_several_addresses(
+        self, capsys: pytest.CaptureFixture[str]
+    ) -> None:
         _, out, _ = run(capsys, "--format", "json", "--count", "2")
 
         payload = json.loads(out)
@@ -58,7 +64,9 @@ class TestGet:
         assert isinstance(payload, list)
         assert len(payload) == 2
 
-    def test_csv_format_has_a_header_and_a_row_per_address(self, capsys) -> None:
+    def test_csv_format_has_a_header_and_a_row_per_address(
+        self, capsys: pytest.CaptureFixture[str]
+    ) -> None:
         _, out, _ = run(capsys, "--format", "csv", "--count", "2")
 
         lines = out.splitlines()
@@ -66,7 +74,9 @@ class TestGet:
         assert lines[0] == "address1,address2,city,state,postal_code,lat,lng"
         assert len(lines) == 3
 
-    def test_repeat_allows_more_addresses_than_exist(self, capsys, dataset) -> None:
+    def test_repeat_allows_more_addresses_than_exist(
+        self, capsys: pytest.CaptureFixture[str], dataset: InstallDataset
+    ) -> None:
         dataset(address())
 
         code, out, _ = run(capsys, "--count", "3", "--repeat")
@@ -74,14 +84,14 @@ class TestGet:
         assert code == 0
         assert len(out.splitlines()) == 3
 
-    def test_unknown_filter_reports_an_error(self, capsys) -> None:
+    def test_unknown_filter_reports_an_error(self, capsys: pytest.CaptureFixture[str]) -> None:
         code, out, err = run(capsys, "--state", "ZZ")
 
         assert code == 1
         assert out == ""
         assert "No address matches" in err
 
-    def test_negative_count_reports_an_error(self, capsys) -> None:
+    def test_negative_count_reports_an_error(self, capsys: pytest.CaptureFixture[str]) -> None:
         code, _, err = run(capsys, "--count", "-1")
 
         assert code == 2
@@ -90,20 +100,22 @@ class TestGet:
 
 class TestListings:
     @pytest.mark.parametrize("command", ["states", "cities", "postal-codes"])
-    def test_text_listing_pairs_each_value_with_a_count(self, capsys, command: str) -> None:
+    def test_text_listing_pairs_each_value_with_a_count(
+        self, capsys: pytest.CaptureFixture[str], command: str
+    ) -> None:
         code, out, _ = run(capsys, command)
 
         assert code == 0
         assert all(line.split()[-1].isdigit() for line in out.splitlines())
 
-    def test_json_listing_maps_values_to_counts(self, capsys) -> None:
+    def test_json_listing_maps_values_to_counts(self, capsys: pytest.CaptureFixture[str]) -> None:
         _, out, _ = run(capsys, "states", "--format", "json")
 
         payload = json.loads(out)
 
         assert payload["CA"] > 0
 
-    def test_summary_reports_the_dataset_totals(self, capsys) -> None:
+    def test_summary_reports_the_dataset_totals(self, capsys: pytest.CaptureFixture[str]) -> None:
         _, out, _ = run(capsys, "summary", "--format", "json")
 
         payload = json.loads(out)

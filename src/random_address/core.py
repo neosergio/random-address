@@ -162,11 +162,12 @@ def _pool(
     postal_code: str | None,
 ) -> tuple[Address, ...]:
     """Return every address matching all of the filters that were supplied."""
-    active: dict[Field, str] = {
-        field: value
-        for field, value in (("state", state), ("city", city), ("postal_code", postal_code))
-        if value is not None
-    }
+    supplied: tuple[tuple[Field, str | None], ...] = (
+        ("state", state),
+        ("city", city),
+        ("postal_code", postal_code),
+    )
+    active: dict[Field, str] = {field: value for field, value in supplied if value is not None}
     if not active:
         return _dataset.load_addresses()
 

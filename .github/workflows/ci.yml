@@ -24,6 +24,9 @@ jobs:
       - run: pip install -e ".[dev]"
       - run: ruff check .
       - run: ruff format --check .
+      # The package ships py.typed, which promises downstream users working
+      # type hints. Nothing but this step holds us to that promise.
+      - run: mypy
 
   test:
     name: Test (Python ${{ matrix.python-version }})

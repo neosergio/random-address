@@ -19,13 +19,18 @@ from __future__ import annotations
 import json
 import re
 from collections import Counter
-from importlib import resources
 from math import isfinite
+from typing import Any, TypeAlias
 
 import pytest
 from add_addresses import DIRECTIONALS, STREET_SUFFIXES, normalize_street
 
-from random_address._dataset import DATA_FILE
+from random_address._dataset import data_source
+
+# A line straight out of the file, before anything has established that it is
+# shaped like an Address. Typing these as Address would assume the very thing
+# these tests exist to check, so they stay raw.
+Record: TypeAlias = dict[str, Any]
 
 ADDRESS_FIELDS = {"address1", "address2", "city", "state", "postal_code", "coordinates"}
 
@@ -39,16 +44,15 @@ MIN_LNG, MAX_LNG = -180.0, -64.0
 
 @pytest.fixture(scope="session")
 def lines() -> list[str]:
-    source = resources.files("random_address").joinpath(*DATA_FILE)
-    return source.read_text(encoding="utf-8").splitlines()
+    return data_source().read_text(encoding="utf-8").splitlines()
 
 
 @pytest.fixture(scope="session")
-def records(lines: list[str]) -> list[dict]:
+def records(lines: list[str]) -> list[Record]:
     return [json.loads(line) for line in lines]
 
 
-def sort_key(record: dict) -> tuple[str, ...]:
+def sort_key(record: Record) -> tuple[str, ...]:
     # Missing fields would raise KeyError here and mask the field-presence test,
     # which reports the real problem far more clearly.
     return tuple(
@@ -75,37 +79,37 @@ class TestLayout:
                 f"re-run data/add_addresses.py rather than editing by hand"
             )
 
-    def test_records_are_sorted(self, records: list[dict]) -> None:
+    def test_records_are_sorted(self, records: list[Record]) -> None:
         assert sorted(records, key=sort_key) == records, (
             "dataset is out of order; re-run data/add_addresses.py, which sorts on write"
         )
 
 
 class TestRecords:
-    def test_every_record_has_exactly_the_expected_fields(self, records: list[dict]) -> None:
+    def test_every_record_has_exactly_the_expected_fields(self, records: list[Record]) -> None:
         for record in records:
             assert set(record) == ADDRESS_FIELDS, record
 
     @pytest.mark.parametrize("field", ["address1", "city", "state", "postal_code"])
-    def test_required_fields_are_non_empty_strings(self, records: list[dict], field: str) -> None:
+    def test_required_fields_are_non_empty_strings(self, records: list[Record], field: str) -> None:
         for record in records:
             value = record[field]
             assert isinstance(value, str) and value.strip(), f"{field} is empty in {record}"
 
-    def test_address2_is_a_string_and_may_be_blank(self, records: list[dict]) -> None:
+    def test_address2_is_a_string_and_may_be_blank(self, records: list[Record]) -> None:
         # A unit or apartment number is genuinely optional.
         for record in records:
             assert isinstance(record["address2"], str)
 
-    def test_state_is_a_two_letter_code(self, records: list[dict]) -> None:
+    def test_state_is_a_two_letter_code(self, records: list[Record]) -> None:
         for record in records:
             assert STATE.match(record["state"]), record
 
-    def test_postal_code_is_five_digits(self, records: list[dict]) -> None:
+    def test_postal_code_is_five_digits(self, records: list[Record]) -> None:
         for record in records:
             assert POSTAL_CODE.match(record["postal_code"]), record
 
-    def test_coordinates_are_finite_and_inside_the_us(self, records: list[dict]) -> None:
+    def test_coordinates_are_finite_and_inside_the_us(self, records: list[Record]) -> None:
         for record in records:
             coordinates = record["coordinates"]
             assert set(coordinates) == {"lat", "lng"}, record
@@ -116,7 +120,7 @@ class TestRecords:
             assert MIN_LAT <= lat <= MAX_LAT, record
             assert MIN_LNG <= lng <= MAX_LNG, record
 
-    def test_street_abbreviations_are_spelled_out(self, records: list[dict]) -> None:
+    def test_street_abbreviations_are_spelled_out(self, records: list[Record]) -> None:
         # 50 Arlington records shipped as "1172 N VERMONT ST" because the old
         # ingest script did no normalization. Only the final token is checked:
         # DC really does have a street named S ("1200 S Street"), and "4221 U.S. 5"
@@ -134,7 +138,7 @@ class TestRecords:
             f"for example {offenders[:3]}"
         )
 
-    def test_normalizing_the_dataset_again_changes_nothing(self, records: list[dict]) -> None:
+    def test_normalizing_the_dataset_again_changes_nothing(self, records: list[Record]) -> None:
         """The ingest normalizer must be a no-op on data it has already produced.
 
         This is the strongest guard on the pair: it catches both an un-normalized
@@ -159,7 +163,7 @@ class TestRecords:
             f"Either the record is not normalized, or normalize_street corrupts it."
         )
 
-    def test_there_are_no_duplicate_addresses(self, records: list[dict]) -> None:
+    def test_there_are_no_duplicate_addresses(self, records: list[Record]) -> None:
         counts = Counter(
             (
                 record["state"],

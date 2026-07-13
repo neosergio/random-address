@@ -13,12 +13,21 @@ rewritten 500 KB line.
 from __future__ import annotations
 
 import json
+import sys
 from collections import defaultdict
 from functools import cache
 from importlib import resources
 from typing import Literal, TypeAlias
 
 from .types import Address
+
+if sys.version_info >= (3, 11):
+    from importlib.resources.abc import Traversable
+else:
+    # importlib.resources.abc does not exist before 3.11, and importlib.abc
+    # is deprecated and removed in 3.14. Neither spelling covers the whole
+    # supported range, so each version imports from where it still works.
+    from importlib.abc import Traversable
 
 DATA_FILE = ("data", "addresses-us.jsonl")
 
@@ -41,14 +50,29 @@ def normalize(field: Field, value: str) -> str:
     return value.strip()
 
 
+def data_source() -> Traversable:
+    """Return the bundled dataset file.
+
+    Traversable.joinpath only takes several children from 3.11 on, and a
+    zip-imported package gets a Traversable rather than a Path, so the components
+    are descended one at a time: every version and every loader agrees on that.
+    Both the loader and the dataset integrity tests come through here, so the
+    walk is written once.
+    """
+    source = resources.files(__package__)
+    for part in DATA_FILE:
+        source = source.joinpath(part)
+
+    return source
+
+
 @cache
 def load_addresses() -> tuple[Address, ...]:
     """Return every address in the bundled dataset.
 
     The result is cached, so the file is parsed only on the first call.
     """
-    source = resources.files(__package__).joinpath(*DATA_FILE)
-    with source.open("r", encoding="utf-8") as handle:
+    with data_source().open("r", encoding="utf-8") as handle:
         return tuple(json.loads(line) for line in handle if line.strip())
 
 
