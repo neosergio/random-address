@@ -10,6 +10,12 @@ on:
 permissions:
   contents: read
 
+# A second push supersedes the first. Without this, every push runs the whole
+# five-version matrix again alongside the run it just obsoleted.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   lint:
     name: Lint
@@ -21,6 +27,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
+          cache: pip
       - run: pip install -e ".[dev]"
       - run: ruff check .
       - run: ruff format --check .
@@ -42,5 +49,46 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+          cache: pip
       - run: pip install -e ".[dev]"
       - run: pytest
+
+  package:
+    name: Build and install the wheel
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - run: pip install build twine
+      - run: python -m build
+      - run: twine check --strict dist/*
+
+      # The dataset ships as package data. If that configuration ever breaks,
+      # the wheel still builds, uploads and installs -- it just has no addresses
+      # in it, and the library is inert. The test suite would not notice: it
+      # runs against the source tree, where the file is on disk either way.
+      #
+      # So install the built wheel somewhere that has no source tree to fall
+      # back on, and make it produce an address. PyPI versions are immutable, so
+      # the alternative to catching this here is not catching it at all.
+      - name: Install the wheel and use it
+        run: |
+          set -euo pipefail
+          python -m venv /tmp/smoke
+          /tmp/smoke/bin/pip install --quiet dist/*.whl
+          cd /tmp    # out of the repo, so a stray import cannot find src/
+          /tmp/smoke/bin/python -c "
+          import random_address
+
+          total = random_address.summary()['total_addresses']
+          assert total > 0, 'the wheel shipped without its dataset'
+          print(f'{total} addresses in the installed wheel')
+          print(random_address.real_random_address(state='CA', seed=1))
+          "
+          /tmp/smoke/bin/random-address --version
