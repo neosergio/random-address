@@ -1,8 +1,10 @@
 # Random Address
 
-This is a tool to retrieve a real address from a list of real of random addresses that geocode successfully (tested on Google's Geocoding API service). The address data comes from the OpenAddresses project, and all the addresses are in the public domain. The addresses are deliberately not linked to people or businesses; the only guarantee is that they are real addresses that geocode successfully.
+This is a tool to retrieve a real address from a list of real, random US addresses. It is meant for testing: seeding fixtures, exercising address forms, and giving geolocation code something genuine to work with.
 
-The addresses were pulled from OpenAddress where the "Required attribute" field was present and not "Yes". See "Attribution" below for a list of sources (also included in each data file).
+The address data comes from the [OpenAddresses](https://openaddresses.io/) project, which collects address data published by national, state and local governments. Every address ships with the latitude and longitude given by that authoritative source, so each one resolves to a real point on the map without a geocoding round trip. All of the addresses are in the public domain, and they are deliberately not linked to people or businesses.
+
+The addresses were pulled from OpenAddresses where the "Required attribute" field was present and not "Yes". See "Attribution" below for a list of sources.
 
 This project was inspired by [Real, Random Address Data (RRAD)](https://github.com/EthanRBrown/rrad) project.
 
@@ -11,6 +13,7 @@ This project was inspired by [Real, Random Address Data (RRAD)](https://github.c
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/random-address)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/random-address)
 ![PyPI - Status](https://img.shields.io/pypi/status/random-address)
+[![PyPI Total Downloads](https://static.pepy.tech/personalized-badge/random-address?period=total&units=INTERNATIONAL_SYSTEM&left_color=BLACK&right_color=GREEN&left_text=total-downloads)](https://pepy.tech/projects/random-address)
 
 
 ## Installation
@@ -80,7 +83,7 @@ more addresses than the filters can supply.
 >>> random_address.state_counts()
 {'AK': 174, 'AL': 193, 'AR': 190, 'AZ': 199, 'CA': 332, ...}
 >>> random_address.summary()
-{'total_addresses': 3270, 'unique_states': 17, 'unique_cities': 421, 'unique_postal_codes': 692}
+{'total_addresses': 3300, 'unique_states': 18, 'unique_cities': 426, 'unique_postal_codes': 694}
 ```
 
 `list_cities()`, `list_postal_codes()`, `city_counts()` and `postal_code_counts()` work the
@@ -238,6 +241,7 @@ All data collected from the [OpenAddresses](https://openaddresses.io/) project, 
 * San Miguel County (CO)
 * City of Honolulu (HI)
 * Arlington County (VA)
+* Durham County (NC)
 
 ## Requesting New Location Data
 
@@ -249,6 +253,72 @@ Requests will be evaluated and added **gradually**, in order to:
 - Ensure quality and functionality remain stable across versions.
 
 We appreciate your suggestions and contributions!
+
+### Can you add addresses for my country?
+
+**If [OpenAddresses](https://openaddresses.io/) covers it, it can be considered. If it does not,
+the answer is no**, and the reason is worth explaining.
+
+Every address here is real, published by a government, and in the public domain. That is the only
+thing this library promises, and it is what makes the addresses geocode. OpenAddresses is the
+project that collects that data, so its coverage is the ceiling on what can be added here. You can
+check a country yourself by looking for its two-letter code under
+[`sources/`](https://github.com/openaddresses/openaddresses/tree/master/sources) — 67 countries are
+covered, including `us`, `jp`, `de` and `br`. Much of Southeast Asia, Africa and South Asia is not,
+because those governments do not publish open address data.
+
+OpenStreetMap is not an alternative. It is licensed under ODbL, which is share-alike, and mixing it
+in would break the public-domain guarantee for everyone downstream.
+
+Note that the dataset is US-only today: `state` is a two-letter code and coordinates are validated
+against a US bounding box. Adding the first non-US country therefore means a schema change, with a
+`country` field and a region concept that is not a US state. That is a real conversation to have,
+but it needs the data to exist first.
+
+**If you need addresses that merely look plausible rather than addresses that are real**, use
+[Faker](https://faker.readthedocs.io/) instead — `Faker("id_ID").address()` and its many other
+locales generate correctly formatted addresses for most countries. Faker's addresses are invented;
+this library's are not. Pick whichever your test actually needs.
+
+### Adding the addresses
+
+Maintainers fulfil a request by sampling from the matching [OpenAddresses](https://openaddresses.io/)
+GeoJSON file:
+
+```bash
+$ python data/add_addresses.py nc.geojson --state NC --count 50 --seed 7 \
+    --cities "Charlotte,Raleigh,Durham,Asheville,Wilmington"
+Selected 50 addresses for NC
+  Asheville   3
+  Charlotte   12
+  Durham      12
+  Raleigh     12
+  Wilmington  11
+
+Wrote 3300 addresses to src/random_address/data/addresses-us.jsonl
+```
+
+`--cities` splits the count evenly between the cities you name, which is how a statewide source
+is turned into a handful of recognizable cities rather than fifty scattered rural rows. A city
+that cannot supply its share does not shrink the sample: above, Asheville only had three usable
+addresses, and the other four cities absorbed the shortfall. Without `--cities`, the sample is
+drawn from the whole file.
+
+Records are validated before being sampled, so a run yields the number of usable addresses you
+asked for. A record is rejected when it has no street number or street, no city (pass `--city`
+to supply one for sources that omit it, as some do), a malformed postal code, coordinates
+outside the US, or a `region` that disagrees with `--state`. Records already in the dataset are
+skipped as duplicates, so re-running a source is safe.
+
+Sources vary. Many publish ALL CAPS, abbreviated data, so `212 HERON CT SW` in `BOLIVIA` is
+normalized to `212 Heron Court Southwest` in `Bolivia` on the way in. Many publish no postal
+code at all, in which case every record is rejected and you need a different source; the
+`statewide` source for a state usually carries one.
+
+Use `--dry-run` to preview, and `--replace-state` to re-import a state from a better source.
+
+Because the dataset is one address per line, sorted, a request like this lands as a reviewable
+diff of 50 added lines. Please credit the source under Attribution when you add data.
 
 
 ## Contributing

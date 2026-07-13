@@ -154,3 +154,6 @@ Thumbs.db
 .idea/
 
 # End of https://www.toptal.com/developers/gitignore/api/python
+# Source data downloaded for data/add_addresses.py; never committed.
+data/*.geojson*
+data/*.zip

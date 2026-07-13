@@ -1,12 +1,15 @@
 name: Publish
 
-# Tagging v* publishes to PyPI. Before the first real tag, run this by hand with
-# target=testpypi to rehearse the whole path, including the OIDC exchange.
-# PyPI version numbers are immutable, so a half-finished upload cannot be redone.
+# Publishing a GitHub Release publishes to PyPI. Draft the release, check it,
+# then hit Publish; a tag alone does nothing, so a stray `git push --tags` cannot
+# ship a version by accident.
+#
+# Rehearse first with the workflow_dispatch below, target=testpypi. PyPI version
+# numbers are immutable, so a half-finished upload cannot be redone.
 
 on:
-  push:
-    tags: ["v*"]
+  release:
+    types: [published]
   workflow_dispatch:
     inputs:
       target:
@@ -15,15 +18,37 @@ on:
         options: [testpypi, pypi]
         default: testpypi
 
+# The GITHUB_TOKEN defaults to broad write access. Nothing here needs it;
+# the publish jobs re-grant id-token: write for Trusted Publishing.
+permissions:
+  contents: read
+
 jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
+
+      - name: Check the release tag matches the package version
+        if: github.event_name == 'release'
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME#v}"
+          version=$(python -c \
+            "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")
+          if [ "$tag" != "$version" ]; then
+            echo "::error::Release tag is v$tag but pyproject.toml says $version."
+            echo "PyPI would publish $version, not what the release claims. Fix one of them."
+            exit 1
+          fi
+          echo "Tag v$tag matches package version $version."
+
       - run: pip install build twine
       - run: python -m build
       - run: twine check dist/*
@@ -57,7 +82,7 @@ jobs:
   pypi:
     name: Publish to PyPI
     needs: build
-    if: github.event_name == 'push' || inputs.target == 'pypi'
+    if: github.event_name == 'release' || inputs.target == 'pypi'
     runs-on: ubuntu-latest
     environment: pypi
     permissions:

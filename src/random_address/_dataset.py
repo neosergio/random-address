@@ -3,6 +3,11 @@
 The dataset is read from disk exactly once per process and then kept in memory.
 Lookup indexes are built lazily on first use, so filtering by state, city or
 postal code is a dictionary hit rather than a scan over every address.
+
+The data is stored as JSON Lines, one address per line, sorted by state, city,
+postal code and street. That is what keeps data contributions reviewable: adding
+a city shows up as a contiguous block of new lines rather than as a single
+rewritten 500 KB line.
 """
 
 from __future__ import annotations
@@ -15,7 +20,7 @@ from typing import Literal, TypeAlias
 
 from .types import Address
 
-DATA_FILE = ("data", "addresses-us.min.json")
+DATA_FILE = ("data", "addresses-us.jsonl")
 
 Field: TypeAlias = Literal["state", "city", "postal_code"]
 
@@ -40,12 +45,11 @@ def normalize(field: Field, value: str) -> str:
 def load_addresses() -> tuple[Address, ...]:
     """Return every address in the bundled dataset.
 
-    The result is cached, so the JSON file is parsed only on the first call.
+    The result is cached, so the file is parsed only on the first call.
     """
     source = resources.files(__package__).joinpath(*DATA_FILE)
     with source.open("r", encoding="utf-8") as handle:
-        payload = json.load(handle)
-    return tuple(payload["addresses"])
+        return tuple(json.loads(line) for line in handle if line.strip())
 
 
 @cache

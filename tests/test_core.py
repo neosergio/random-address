@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import random
+from importlib import metadata
 from types import ModuleType
 
 import pytest
@@ -194,3 +195,8 @@ class TestPackageSurface:
         from random_address._dataset import load_addresses
 
         assert {frozenset(record) for record in load_addresses()} == {frozenset(ADDRESS_FIELDS)}
+
+    def test_version_matches_the_installed_distribution(self) -> None:
+        # __version__ and the version in pyproject.toml are two places to bump,
+        # and a release tag will happily go out with them disagreeing.
+        assert random_address.__version__ == metadata.version("random-address")

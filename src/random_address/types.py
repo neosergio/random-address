@@ -16,7 +16,7 @@ class Coordinates(TypedDict):
 
 
 class Address(TypedDict):
-    """A single real US address that geocodes successfully."""
+    """A single real US address, with the coordinates published by its source."""
 
     address1: str
     address2: str

@@ -1,4 +1,4 @@
-"""Functions to retrieve real random US addresses that geocode successfully."""
+"""Functions to retrieve real random US addresses."""
 
 from __future__ import annotations
 
