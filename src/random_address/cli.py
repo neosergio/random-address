@@ -47,7 +47,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="random-address",
-        description="Retrieve real random US addresses that geocode successfully.",
+        description="Retrieve real random US addresses, with coordinates, for tests and fixtures.",
     )
     parser.add_argument("-V", "--version", action="version", version=f"%(prog)s {__version__}")
     subparsers = parser.add_subparsers()

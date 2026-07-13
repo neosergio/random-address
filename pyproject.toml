@@ -5,8 +5,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "random-address"
-version = "2.0.0"
-description = "Retrieve real random US addresses that geocode successfully"
+version = "2.1.0"
+description = "Retrieve real random US addresses, with coordinates, for tests and fixtures"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
@@ -71,11 +71,14 @@ where = ["src"]
 
 
 [tool.setuptools.package-data]
-random_address = ["py.typed", "data/*.json"]
+random_address = ["py.typed", "data/*.jsonl"]
 
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# data/ holds the maintainer ingest script. It is not shipped, but it decides
+# what lands in the dataset, so it is tested.
+pythonpath = ["data"]
 addopts = [
     "-ra",
     "-q",

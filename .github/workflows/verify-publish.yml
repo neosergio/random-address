@@ -10,15 +10,25 @@ name: Verify publish setup
 on:
   workflow_dispatch:
 
+# The GITHUB_TOKEN defaults to broad write access. Nothing here needs it;
+# the publish jobs re-grant id-token: write for Trusted Publishing.
+permissions:
+  contents: read
+
 jobs:
   verify:
     name: Show the claims PyPI will check
     runs-on: ubuntu-latest
     environment: pypi
     permissions:
+      # A job-level block replaces the workflow-level one rather than adding to
+      # it, so contents: read has to be repeated here: this job checks out.
+      contents: read
       id-token: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-python@v5
         with:
