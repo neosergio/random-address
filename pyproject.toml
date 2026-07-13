@@ -49,6 +49,7 @@ dependencies = []
 [project.optional-dependencies]
 dev = [
     "build>=1.2",
+    "mypy>=1.11",
     "pytest>=8",
     "ruff>=0.6",
     "twine>=6",
@@ -83,6 +84,11 @@ addopts = [
     "-ra",
     "-q",
 ]
+# The package has no runtime dependencies, so every warning raised during a test
+# run comes from this code or from the standard library deprecating something out
+# from under it. A DeprecationWarning here is the 3.14 job failing early, quietly,
+# where nobody reads it; make it fail loudly instead.
+filterwarnings = ["error"]
 
 
 [tool.ruff]
@@ -100,3 +106,12 @@ select = [
     "SIM",  # flake8-simplify
     "RUF",  # ruff-specific
 ]
+
+
+[tool.mypy]
+python_version = "3.10"
+files = ["src", "tests", "data"]
+# data/ holds the maintainer ingest script, which the dataset tests import.
+# pytest finds it through pythonpath above; mypy needs telling separately.
+mypy_path = "data"
+strict = true

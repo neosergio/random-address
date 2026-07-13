@@ -7,7 +7,7 @@ import csv
 import io
 import json
 import sys
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 
 from . import __version__
 from .core import (
@@ -145,7 +145,9 @@ def _handle_get(args: argparse.Namespace) -> str:
     return "\n".join(_to_text(address) for address in addresses)
 
 
-def _make_listing_handler(counts):
+def _make_listing_handler(
+    counts: Callable[[], dict[str, int]],
+) -> Callable[[argparse.Namespace], str]:
     def handler(args: argparse.Namespace) -> str:
         values = counts()
         if args.format == "json":

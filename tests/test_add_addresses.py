@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import random
+from typing import Any
 
 import pytest
 from add_addresses import (
@@ -22,12 +23,17 @@ from add_addresses import (
 )
 
 
-def options(**overrides) -> argparse.Namespace:
-    defaults = {"state": "NC", "city": None, "allow_missing_city": False, "city_map": {}}
+def options(**overrides: Any) -> argparse.Namespace:
+    defaults: dict[str, Any] = {
+        "state": "NC",
+        "city": None,
+        "allow_missing_city": False,
+        "city_map": {},
+    }
     return argparse.Namespace(**{**defaults, **overrides})
 
 
-def feature(**properties) -> dict:
+def feature(**properties: str) -> dict[str, Any]:
     defaults = {
         "number": "212",
         "street": "HERON CT SW",
@@ -145,14 +151,16 @@ class TestConvert:
         address, reason = _convert(feature(), options())
 
         assert reason == ""
+        assert address is not None
         assert address["address1"] == "212 Heron Court Southwest"
         assert address["city"] == "Bolivia"
         assert address["state"] == "NC"
         assert address["postal_code"] == "28422"
 
     def test_truncates_zip_plus_four(self) -> None:
-        address, _ = _convert(feature(postcode="28422-1234"), options())
+        address, reason = _convert(feature(postcode="28422-1234"), options())
 
+        assert address is not None, reason
         assert address["postal_code"] == "28422"
 
     @pytest.mark.parametrize(
@@ -165,7 +173,11 @@ class TestConvert:
             ({"street": ""}, "no street address"),
         ],
     )
-    def test_rejects_unusable_records(self, overrides: dict, reason: str) -> None:
+    def test_rejects_unusable_records(
+        self,
+        overrides: dict[str, str],
+        reason: str,
+    ) -> None:
         address, actual = _convert(feature(**overrides), options())
 
         assert address is None
@@ -178,21 +190,24 @@ class TestConvert:
         assert reason == "state is CA, not NC"
 
     def test_city_option_fills_in_a_source_that_omits_it(self) -> None:
-        address, _ = _convert(feature(city=""), options(city="Arlington"))
+        address, reason = _convert(feature(city=""), options(city="Arlington"))
 
+        assert address is not None, reason
         assert address["city"] == "Arlington"
 
     def test_city_map_expands_a_source_that_publishes_codes(self) -> None:
-        address, _ = _convert(
+        address, reason = _convert(
             feature(city="DURH"),
             options(city_map={"DURH": "Durham", "CHAP": "Chapel Hill"}),
         )
 
+        assert address is not None, reason
         assert address["city"] == "Durham"
 
     def test_city_map_preserves_names_it_does_not_cover(self) -> None:
-        address, _ = _convert(feature(city="BOLIVIA"), options(city_map={"DURH": "Durham"}))
+        address, reason = _convert(feature(city="BOLIVIA"), options(city_map={"DURH": "Durham"}))
 
+        assert address is not None, reason
         assert address["city"] == "Bolivia"
 
     def test_rejects_a_corrupt_city_with_no_letters_in_it(self) -> None:
@@ -203,8 +218,9 @@ class TestConvert:
         assert reason == "no city"
 
     def test_allow_missing_city_still_works(self) -> None:
-        address, _ = _convert(feature(city=""), options(allow_missing_city=True))
+        address, reason = _convert(feature(city=""), options(allow_missing_city=True))
 
+        assert address is not None, reason
         assert address["city"] == ""
 
     def test_rejects_coordinates_outside_the_us(self) -> None:
@@ -218,7 +234,7 @@ class TestConvert:
 
 
 class TestKey:
-    def address(self, **overrides) -> dict:
+    def address(self, **overrides: str) -> dict[str, Any]:
         base = {
             "state": "NC",
             "postal_code": "27701",
@@ -277,7 +293,7 @@ class TestAllocate:
 
 
 class TestBalancedSample:
-    def addresses(self, city: str, n: int) -> list[dict]:
+    def addresses(self, city: str, n: int) -> list[dict[str, Any]]:
         return [{"city": city, "address1": f"{i} Main Street"} for i in range(n)]
 
     def test_splits_the_count_across_the_named_cities(self) -> None:

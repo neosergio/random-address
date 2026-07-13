@@ -8,12 +8,24 @@ failure.
 
 from __future__ import annotations
 
-from collections.abc import Callable, Iterator
+from collections.abc import Iterator
+from typing import Protocol
 
 import pytest
 
 from random_address import _dataset
 from random_address.types import Address
+
+
+class InstallDataset(Protocol):
+    """What the ``dataset`` fixture hands a test.
+
+    A Protocol rather than Callable[..., None]: the ellipsis accepts any
+    arguments at all, so a test that installed something which was not an
+    Address would type-check happily. This pins the real signature.
+    """
+
+    def __call__(self, *addresses: Address) -> None: ...
 
 
 def address(
@@ -38,7 +50,7 @@ def address(
 
 
 @pytest.fixture
-def dataset(monkeypatch: pytest.MonkeyPatch) -> Iterator[Callable[..., None]]:
+def dataset(monkeypatch: pytest.MonkeyPatch) -> Iterator[InstallDataset]:
     """Replace the bundled dataset for the duration of a test."""
 
     def install(*addresses: Address) -> None:

@@ -22,7 +22,7 @@ from random_address import (
     summary,
 )
 
-from .conftest import address
+from .conftest import InstallDataset, address
 
 ADDRESS_FIELDS = {"address1", "address2", "city", "state", "postal_code", "coordinates"}
 
@@ -43,7 +43,7 @@ class TestRealRandomAddress:
     def test_filters_by_postal_code(self) -> None:
         assert real_random_address(postal_code="94560")["postal_code"] == "94560"
 
-    def test_filters_combine(self, dataset) -> None:
+    def test_filters_combine(self, dataset: InstallDataset) -> None:
         dataset(
             address(state="CA", city="Newark", address1="wanted"),
             address(state="CA", city="Fresno", address1="wrong city"),
@@ -65,13 +65,13 @@ class TestRealRandomAddress:
         with pytest.raises(NoMatchingAddressError, match="state='ZZ'"):
             real_random_address(state="ZZ")
 
-    def test_contradictory_filters_raise(self, dataset) -> None:
+    def test_contradictory_filters_raise(self, dataset: InstallDataset) -> None:
         dataset(address(state="CA", city="Newark"))
 
         with pytest.raises(NoMatchingAddressError):
             real_random_address(state="FL", city="Newark")
 
-    def test_empty_dataset_raises_instead_of_crashing(self, dataset) -> None:
+    def test_empty_dataset_raises_instead_of_crashing(self, dataset: InstallDataset) -> None:
         dataset()
 
         # v1 raised IndexError here, contradicting its own documented contract.
@@ -109,20 +109,20 @@ class TestRealRandomAddresses:
         with pytest.raises(ValueError, match="must not be negative"):
             real_random_addresses(-1)
 
-    def test_results_are_distinct_by_default(self, dataset) -> None:
+    def test_results_are_distinct_by_default(self, dataset: InstallDataset) -> None:
         dataset(*(address(address1=f"{n} Main Street") for n in range(10)))
 
         results = real_random_addresses(10)
 
         assert len({result["address1"] for result in results}) == 10
 
-    def test_requesting_more_than_exist_raises(self, dataset) -> None:
+    def test_requesting_more_than_exist_raises(self, dataset: InstallDataset) -> None:
         dataset(address(), address())
 
         with pytest.raises(NoMatchingAddressError, match="Only 2 distinct addresses"):
             real_random_addresses(3)
 
-    def test_repeats_are_allowed_when_unique_is_false(self, dataset) -> None:
+    def test_repeats_are_allowed_when_unique_is_false(self, dataset: InstallDataset) -> None:
         dataset(address())
 
         assert len(real_random_addresses(4, unique=False)) == 4
@@ -152,7 +152,7 @@ class TestDatasetIntrospection:
         assert list_cities() == list(city_counts())
         assert list_postal_codes() == list(postal_code_counts())
 
-    def test_counts_add_up_to_the_dataset_size(self, dataset) -> None:
+    def test_counts_add_up_to_the_dataset_size(self, dataset: InstallDataset) -> None:
         dataset(
             address(state="CA"),
             address(state="CA"),
@@ -161,7 +161,7 @@ class TestDatasetIntrospection:
 
         assert state_counts() == {"CA": 2, "FL": 1}
 
-    def test_blank_values_are_left_out_of_listings(self, dataset) -> None:
+    def test_blank_values_are_left_out_of_listings(self, dataset: InstallDataset) -> None:
         # 20 records in the bundled dataset have no city at all.
         dataset(address(city="Newark"), address(city=""))
 

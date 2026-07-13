@@ -24,9 +24,9 @@ import random
 import re
 import sys
 from collections import Counter, defaultdict
-from collections.abc import Iterator
+from collections.abc import Iterator, Sequence
 from pathlib import Path
-from typing import Any
+from typing import Any, TypeGuard
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DATASET = REPO_ROOT / "src" / "random_address" / "data" / "addresses-us.jsonl"
@@ -449,7 +449,9 @@ def normalize_street(street: str) -> str:
     return titlecase(" ".join(tokens))
 
 
-def _valid_coordinates(coordinates: Any) -> bool:
+def _valid_coordinates(coordinates: Any) -> TypeGuard[Sequence[float]]:
+    # A TypeGuard rather than a bool: the caller indexes the coordinates right
+    # after this returns true, and only the guard establishes that it may.
     if not isinstance(coordinates, (list, tuple)) or len(coordinates) < 2:
         return False
     try:
