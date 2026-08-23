@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import random
+from collections.abc import Callable
 from importlib import metadata
 from types import ModuleType
 
@@ -12,6 +13,7 @@ import random_address
 from random_address import (
     NoMatchingAddressError,
     city_counts,
+    count,
     list_cities,
     list_postal_codes,
     list_states,
@@ -173,7 +175,134 @@ class TestDatasetIntrospection:
         assert statistics["unique_states"] == len(list_states())
         assert statistics["unique_cities"] == len(list_cities())
         assert statistics["unique_postal_codes"] == len(list_postal_codes())
-        assert statistics["total_addresses"] > 0
+        assert statistics["total_addresses"] == count()
+
+    @pytest.mark.parametrize("counts", [state_counts, city_counts, postal_code_counts])
+    def test_every_address_is_counted_exactly_once(
+        self, counts: Callable[[], dict[str, int]]
+    ) -> None:
+        # _counts skips a falsy value, so these sums only equal the total because
+        # no bundled record has a blank state, city or postal code. The dataset
+        # integrity tests are what hold that true; if one ever regressed, the
+        # blank would vanish from the listings and this is where it would surface.
+        assert sum(counts().values()) == count()
+
+
+class TestCount:
+    """Counting is asserted against the other introspection functions.
+
+    Hardcoding 3300 here would mean every data expansion broke the suite, which
+    is exactly the friction the dataset workflow is meant to avoid. The numbers
+    these tests use come from the dataset itself; what is pinned is that count()
+    and the counts dictionaries can never disagree.
+    """
+
+    def test_with_no_filters_counts_the_whole_dataset(self) -> None:
+        assert count() == summary()["total_addresses"]
+
+    def test_agrees_with_state_counts(self) -> None:
+        assert {state: count(state=state) for state in list_states()} == state_counts()
+
+    def test_agrees_with_city_counts(self) -> None:
+        assert {city: count(city=city) for city in list_cities()} == city_counts()
+
+    def test_agrees_with_postal_code_counts(self) -> None:
+        expected = postal_code_counts()
+        assert {code: count(postal_code=code) for code in list_postal_codes()} == expected
+
+    def test_counts_what_the_lookup_actually_returns(self) -> None:
+        # The pool count() measures is the pool real_random_addresses draws from,
+        # so asking for exactly that many distinct addresses must not raise.
+        total = count(state="VA", city="Arlington")
+
+        assert len(real_random_addresses(total, state="VA", city="Arlington", seed=1)) == total
+
+    def test_state_matching_ignores_case_and_whitespace(self) -> None:
+        assert count(state="ca") == count(state="CA") == count(state="  Ca  ")
+
+    def test_city_matching_ignores_case_and_whitespace(self) -> None:
+        city = list_cities()[0]
+
+        assert count(city=city.upper()) == count(city=city.lower()) == count(city=f"  {city}  ")
+
+    def test_postal_code_is_matched_exactly(self) -> None:
+        code = list_postal_codes()[0]
+
+        assert count(postal_code=code) > 0
+        # A prefix is a different postal code, not a looser spelling of this one.
+        assert count(postal_code=code[:-1]) == 0
+
+    @pytest.mark.parametrize(
+        "filters",
+        [
+            {},
+            {"state": "CA"},
+            {"city": "Arlington"},
+            {"postal_code": "22204"},
+            {"state": "VA", "city": "Arlington"},
+            {"state": "ZZ"},
+        ],
+    )
+    def test_is_always_a_non_negative_int(self, filters: dict[str, str]) -> None:
+        result = count(**filters)
+
+        assert type(result) is int
+        assert result >= 0
+
+    @pytest.mark.parametrize(
+        "filters",
+        [
+            {"state": "ZZ"},
+            {"city": "Nowhere"},
+            {"postal_code": "00000"},
+            {"state": "ZZ", "city": "Nowhere"},
+            {"state": "ZZ", "city": "Nowhere", "postal_code": "00000"},
+            # Each value exists, but no single address carries both.
+            {"state": "CA", "city": "Arlington"},
+        ],
+    )
+    def test_counts_zero_when_nothing_matches(self, filters: dict[str, str]) -> None:
+        assert count(**filters) == 0
+
+    def test_no_match_counts_zero_rather_than_raising(self) -> None:
+        # real_random_address raises here; count answers the question instead.
+        with pytest.raises(NoMatchingAddressError):
+            real_random_address(state="ZZ")
+
+        assert count(state="ZZ") == 0
+
+    def test_filters_combine(self, dataset: InstallDataset) -> None:
+        dataset(
+            address(state="CA", city="Newark", postal_code="94560"),
+            address(state="CA", city="Fresno", postal_code="93650"),
+            address(state="FL", city="Newark", postal_code="32409"),
+        )
+
+        assert count() == 3
+        assert count(state="CA") == 2
+        assert count(city="Newark") == 2
+        assert count(postal_code="94560") == 1
+        assert count(state="CA", city="Newark") == 1
+        assert count(state="CA", postal_code="93650") == 1
+        assert count(city="Newark", postal_code="32409") == 1
+        assert count(state="CA", city="Newark", postal_code="94560") == 1
+
+    def test_narrowing_never_widens(self, dataset: InstallDataset) -> None:
+        dataset(
+            address(state="CA", city="Newark", postal_code="94560"),
+            address(state="CA", city="Newark", postal_code="94561"),
+            address(state="CA", city="Fresno", postal_code="93650"),
+        )
+
+        assert count(state="CA", city="Newark") <= count(state="CA")
+        assert count(state="CA", city="Newark", postal_code="94560") <= count(
+            state="CA", city="Newark"
+        )
+
+    def test_an_empty_dataset_counts_zero(self, dataset: InstallDataset) -> None:
+        dataset()
+
+        assert count() == 0
 
 
 class TestPackageSurface:

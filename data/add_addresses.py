@@ -131,21 +131,25 @@ def main(argv: list[str] | None = None) -> int:
     seen = {_key(address) for address in existing}
     rejected: Counter[str] = Counter()
     candidates: list[dict[str, Any]] = []
+    read = 0
+    duplicates = 0
 
     for feature in _read_features(args.source):
+        read += 1
         address, reason = _convert(feature, args)
         if address is None:
             rejected[reason] += 1
             continue
         key = _key(address)
         if key in seen:
-            rejected["duplicate"] += 1
+            duplicates += 1
             continue
         seen.add(key)
         candidates.append(address)
 
     if not candidates:
         print("No usable addresses found.", file=sys.stderr)
+        _report_summary(read, len(candidates), duplicates, rejected, 0, len(existing))
         _report(rejected)
         _explain_wholesale_rejection(rejected)
         return 1
@@ -160,11 +164,26 @@ def main(argv: list[str] | None = None) -> int:
         selected = generator.sample(candidates, count)
 
     if not selected:
+        # Reachable only through --cities: there were usable candidates, just
+        # none in any of the cities asked for. Reporting the tally here too says
+        # how much the source held, which is what tells a bad --cities apart
+        # from a bad source.
         print("No usable addresses found.", file=sys.stderr)
+        _report_summary(read, len(candidates), duplicates, rejected, 0, len(existing))
         return 1
 
     print(f"Selected {len(selected)} addresses for {args.state}")
     _report_by_city(selected)
+    print()
+    _report_summary(
+        read,
+        len(candidates),
+        duplicates,
+        rejected,
+        len(selected),
+        len(existing),
+        dry_run=args.dry_run,
+    )
     _report(rejected)
 
     if args.dry_run:
@@ -463,19 +482,22 @@ def _valid_coordinates(coordinates: Any) -> TypeGuard[Sequence[float]]:
     return MIN_LAT <= lat <= MAX_LAT and MIN_LNG <= lng <= MAX_LNG
 
 
-def _key(address: dict[str, Any]) -> tuple[str, str, str, str]:
+def _key(address: dict[str, Any]) -> tuple[str, ...]:
     """Identify an address for duplicate detection.
 
     address2 is part of the key: two apartments in one building share a street
     address but are different addresses. Leaving it out collapsed them, and in
     the Durham source that would have discarded 5,057 distinct units while
     reporting them as duplicates.
+
+    City is in the key and whitespace is collapsed as well as case, so that a
+    source publishing "1  MAIN  ST" cannot slip past a dataset already holding
+    "1 Main Street". tests/test_dataset.py mirrors this exactly: what is skipped
+    here is what the dataset refuses to ship.
     """
-    return (
-        address["state"].upper(),
-        address["postal_code"],
-        address["address1"].casefold(),
-        address["address2"].casefold(),
+    return tuple(
+        " ".join(str(address.get(field, "")).split()).casefold()
+        for field in ("state", "city", "postal_code", "address1", "address2")
     )
 
 
@@ -617,6 +639,48 @@ def _explain_wholesale_rejection(rejected: Counter[str]) -> None:
             "no city.\nPass --city to supply one for the whole file.",
             file=sys.stderr,
         )
+
+
+def _report_summary(
+    read: int,
+    valid: int,
+    duplicates: int,
+    rejected: Counter[str],
+    selected: int,
+    existing: int,
+    *,
+    dry_run: bool = False,
+) -> None:
+    """Account for every record the source offered.
+
+    A run reports rejections by reason, but never said how many records it had
+    looked at, so "Rejected: 119901 bad postal code" gave no sense of whether
+    that was the whole file or a rounding error.
+
+    Valid and Rejected account between them for every record read. Duplicates is
+    the part of Valid that is already present, in the dataset or earlier in the
+    same source, and so is not available to sample.
+
+    The last line states what happens to the dataset, so on a dry run it has to
+    say what would happen. Printing "Added" directly above "Dry run, nothing
+    written" claims a write that did not occur.
+    """
+    lines = [
+        ("Read", read, "records in the source"),
+        ("Valid", valid + duplicates, "passed validation"),
+        ("Duplicates", duplicates, "already in the dataset, or repeated in the source"),
+        ("Rejected", sum(rejected.values()), "failed validation"),
+        ("Selected", selected, "sampled from the valid records"),
+    ]
+    if selected:
+        label = "Would add" if dry_run else "Added"
+        lines.append((label, selected, f"dataset {existing} -> {existing + selected}"))
+
+    width = max(len(label) for label, _, _ in lines)
+    total = max(total for _, total, _ in lines)
+    digits = len(f"{total:,}")
+    for label, count, note in lines:
+        print(f"{label:<{width}}  {count:>{digits},}  {note}")
 
 
 def _report(rejected: Counter[str]) -> None:

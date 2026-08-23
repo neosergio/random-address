@@ -8,6 +8,7 @@ that source, so it resolves to a real point on the map without a geocoding call.
 from .core import (
     NoMatchingAddressError,
     city_counts,
+    count,
     list_cities,
     list_postal_codes,
     list_states,
@@ -26,6 +27,7 @@ __all__ = [
     "Seed",
     "Summary",
     "city_counts",
+    "count",
     "list_cities",
     "list_postal_codes",
     "list_states",
@@ -36,4 +38,4 @@ __all__ = [
     "summary",
 ]
 
-__version__ = "2.1.0"
+__version__ = "2.1.1"

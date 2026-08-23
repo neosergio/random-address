@@ -1,5 +1,24 @@
 # Changelog
 
+## [2.1.1] - 2026-08-23
+
+An additive release. Everything from 2.1.0 keeps working unchanged; there is one new function, a
+hundred new addresses, and a tighter set of guards on the data.
+
+### Added
+- `count()` returns how many addresses match, without drawing one. It takes the same `state`, `city` and `postal_code` filters as `real_random_address()`, combining and normalizing them identically, and it is the way to size a fixture before asking for it: `real_random_addresses(n, unique=True)` raises when `n` exceeds the number of matches, and `count()` is how you learn `n`. Where the lookup functions raise `NoMatchingAddressError`, `count()` returns `0` — asking how many addresses there are is a question that a zero answers. It reuses the same internal filtering the lookups use, so the two can never disagree about what a filter means.
+- Texas and Oregon, bringing the dataset to 3,400 addresses across 20 states. 50 each, spread across five Texas cities (Houston, San Antonio, Dallas, Austin, Fort Worth) over 32 postal codes, and six in the Portland metro (Portland, Beaverton, Hillsboro, Gresham, Tigard, Lake Oswego) over 20. Both sources are public domain and neither requires attribution: Texas from TNRIS StratMap Address Points (CC0), Oregon from the City of Portland (PDDL 1.0). They are credited under Attribution all the same.
+- `ROADMAP.md`, recording work that has been considered and deliberately deferred, with the reason. Requests for particular cities still belong in GitHub Issues; this is for decisions that would otherwise be lost in a pull request comment.
+- Dataset integrity tests now check that a state code is a state that exists, not merely two capital letters — `ZZ` passed the old shape check — and that `coordinates` is really a dict whose values lie within the global latitude and longitude limits as well as inside the US box.
+- Tests that pin `count()` against the existing introspection functions: `count(state=X)` must equal `state_counts()[X]` for every state, and likewise for every city and postal code. Nothing hardcodes 3,400, so growing the dataset does not break the suite.
+
+### Changed
+- The canonical duplicate key now includes `city` and collapses runs of whitespace as well as case. The two halves pull in opposite directions. Collapsing whitespace merges keys: `1  Main  Street` and `1 Main Street` were treated as distinct and now share one. Including `city` splits them: two records sharing a street, ZIP and state but sitting in different cities were collapsed into one, and are now kept apart. `data/add_addresses.py` and the dataset integrity test now derive the key the same way, so what the ingest script skips is exactly what the dataset refuses to ship. No existing record changed: the stronger key finds no duplicates in the shipped data.
+- `data/add_addresses.py` accounts for every record it reads. A run reported rejections by reason but never said how many records it had looked at, so `47083 bad postal code` gave no sense of whether that was the whole file or a rounding error. It now prints how many were read, passed validation, were skipped as duplicates, were rejected, were sampled, and were added, along with the dataset size before and after. Duplicates are counted separately rather than being folded anonymously into the rejection tally.
+
+### Fixed
+- The README's `state_counts()` example claimed 332 California addresses. There are 331, and there were 331 when it was written.
+
 ## [2.1.0] - 2026-07-12
 
 A dataset release. The library's API is unchanged, but the data it ships has been cleaned up and
@@ -114,6 +133,7 @@ the old function names to the new ones.
 ### Added
 - First public preview release.
 
+[2.1.1]: https://github.com/neosergio/random-address/compare/v2.1.0...v2.1.1
 [2.1.0]: https://github.com/neosergio/random-address/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/neosergio/random-address/compare/v1.3.0...v2.0.0
 [1.3.0]: https://github.com/neosergio/random-address/compare/v1.2.1...v1.3.0

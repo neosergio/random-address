@@ -2896,6 +2896,56 @@
 {"address1": "10725 Sunset Boulevard", "address2": "", "city": "Spencer", "state": "OK", "postal_code": "73084", "coordinates": {"lat": 35.564321, "lng": -97.339423}}
 {"address1": "2455 Manchester Drive", "address2": "", "city": "The Village", "state": "OK", "postal_code": "73120", "coordinates": {"lat": 35.576392, "lng": -97.55644629999999}}
 {"address1": "4807 North Grove Avenue", "address2": "", "city": "Warr Acres", "state": "OK", "postal_code": "73122", "coordinates": {"lat": 35.5203601, "lng": -97.6147122}}
+{"address1": "2640 Southwest 204th Avenue", "address2": "", "city": "Beaverton", "state": "OR", "postal_code": "97003", "coordinates": {"lat": 45.5007486, "lng": -122.8867664}}
+{"address1": "11410 Southwest Fairfield Street", "address2": "", "city": "Beaverton", "state": "OR", "postal_code": "97005", "coordinates": {"lat": 45.4967995, "lng": -122.7942108}}
+{"address1": "3720 Southwest 141st Avenue", "address2": "207", "city": "Beaverton", "state": "OR", "postal_code": "97005", "coordinates": {"lat": 45.4924745, "lng": -122.8211816}}
+{"address1": "17404 Northwest Autumn Ridge Drive", "address2": "", "city": "Beaverton", "state": "OR", "postal_code": "97006", "coordinates": {"lat": 45.5276344, "lng": -122.8557824}}
+{"address1": "2306 Northwest Schmidt Way", "address2": "1", "city": "Beaverton", "state": "OR", "postal_code": "97006", "coordinates": {"lat": 45.5361547, "lng": -122.8488301}}
+{"address1": "12900 Southwest Zigzag Lane", "address2": "102", "city": "Beaverton", "state": "OR", "postal_code": "97007", "coordinates": {"lat": 45.4262902, "lng": -122.8709344}}
+{"address1": "15600 Southwest Talus Way", "address2": "", "city": "Beaverton", "state": "OR", "postal_code": "97007", "coordinates": {"lat": 45.4482687, "lng": -122.8369686}}
+{"address1": "17574 Southwest Sarala Street", "address2": "", "city": "Beaverton", "state": "OR", "postal_code": "97007", "coordinates": {"lat": 45.4630685, "lng": -122.8581482}}
+{"address1": "17667 Southwest Cody Lane", "address2": "", "city": "Beaverton", "state": "OR", "postal_code": "97007", "coordinates": {"lat": 45.4713271, "lng": -122.8587812}}
+{"address1": "1545 Southeast 223rd Avenue", "address2": "276", "city": "Gresham", "state": "OR", "postal_code": "97030", "coordinates": {"lat": 45.5113596, "lng": -122.4345603}}
+{"address1": "1911 Northwest 17th Street", "address2": "", "city": "Gresham", "state": "OR", "postal_code": "97030", "coordinates": {"lat": 45.5096918, "lng": -122.4512811}}
+{"address1": "3523 Northeast 15th Street", "address2": "", "city": "Gresham", "state": "OR", "postal_code": "97030", "coordinates": {"lat": 45.5079589, "lng": -122.3972187}}
+{"address1": "2371 Southeast Meadow Court", "address2": "", "city": "Gresham", "state": "OR", "postal_code": "97080", "coordinates": {"lat": 45.480305, "lng": -122.4326056}}
+{"address1": "2437 Southwest 30th Court", "address2": "", "city": "Gresham", "state": "OR", "postal_code": "97080", "coordinates": {"lat": 45.4759615, "lng": -122.4583401}}
+{"address1": "35321 Southeast Dodge Park Boulevard", "address2": "", "city": "Gresham", "state": "OR", "postal_code": "97080", "coordinates": {"lat": 45.4702034, "lng": -122.2967484}}
+{"address1": "4456 Southeast Antelope Hills Place", "address2": "", "city": "Gresham", "state": "OR", "postal_code": "97080", "coordinates": {"lat": 45.466286, "lng": -122.4355443}}
+{"address1": "755 Southeast 18th Lane", "address2": "", "city": "Gresham", "state": "OR", "postal_code": "97080", "coordinates": {"lat": 45.4840963, "lng": -122.4238046}}
+{"address1": "716 Northeast Adwick Drive", "address2": "", "city": "Hillsboro", "state": "OR", "postal_code": "97006", "coordinates": {"lat": 45.5250009, "lng": -122.8879368}}
+{"address1": "2550 Southeast Century Boulevard", "address2": "109", "city": "Hillsboro", "state": "OR", "postal_code": "97123", "coordinates": {"lat": 45.501059, "lng": -122.9164861}}
+{"address1": "269 Southeast 29th Avenue", "address2": "", "city": "Hillsboro", "state": "OR", "postal_code": "97123", "coordinates": {"lat": 45.519468, "lng": -122.9538396}}
+{"address1": "869 Southeast 67th Avenue", "address2": "", "city": "Hillsboro", "state": "OR", "postal_code": "97123", "coordinates": {"lat": 45.5129, "lng": -122.9114235}}
+{"address1": "2571 Northeast Overlook Drive", "address2": "623", "city": "Hillsboro", "state": "OR", "postal_code": "97124", "coordinates": {"lat": 45.5383175, "lng": -122.8846909}}
+{"address1": "3069 Northeast Overlook Drive", "address2": "538", "city": "Hillsboro", "state": "OR", "postal_code": "97124", "coordinates": {"lat": 45.5437291, "lng": -122.8833103}}
+{"address1": "784 Northeast Caden Avenue", "address2": "", "city": "Hillsboro", "state": "OR", "postal_code": "97124", "coordinates": {"lat": 45.5285475, "lng": -122.918928}}
+{"address1": "919 Northeast 3rd Avenue", "address2": "", "city": "Hillsboro", "state": "OR", "postal_code": "97124", "coordinates": {"lat": 45.5310788, "lng": -122.98697}}
+{"address1": "17632 Woodhurst Place", "address2": "", "city": "Lake Oswego", "state": "OR", "postal_code": "97034", "coordinates": {"lat": 45.3971013, "lng": -122.6572222}}
+{"address1": "12375 Mt Jefferson Terrace", "address2": "4F", "city": "Lake Oswego", "state": "OR", "postal_code": "97035", "coordinates": {"lat": 45.4299114, "lng": -122.7148068}}
+{"address1": "15000 Davis Lane", "address2": "31", "city": "Lake Oswego", "state": "OR", "postal_code": "97035", "coordinates": {"lat": 45.4180338, "lng": -122.7142795}}
+{"address1": "3 Centerpointe Drive", "address2": "110", "city": "Lake Oswego", "state": "OR", "postal_code": "97035", "coordinates": {"lat": 45.4236648, "lng": -122.7406444}}
+{"address1": "351 Cervantes", "address2": "", "city": "Lake Oswego", "state": "OR", "postal_code": "97035", "coordinates": {"lat": 45.4348258, "lng": -122.7262913}}
+{"address1": "4000 Carman Drive", "address2": "C47", "city": "Lake Oswego", "state": "OR", "postal_code": "97035", "coordinates": {"lat": 45.4192739, "lng": -122.7204537}}
+{"address1": "5950 Harrington Avenue", "address2": "", "city": "Lake Oswego", "state": "OR", "postal_code": "97035", "coordinates": {"lat": 45.4074249, "lng": -122.7382727}}
+{"address1": "6145 Southwest McEwan Road", "address2": "", "city": "Lake Oswego", "state": "OR", "postal_code": "97035", "coordinates": {"lat": 45.3912771, "lng": -122.7390662}}
+{"address1": "1300 Southwest Park Avenue", "address2": "302", "city": "Portland", "state": "OR", "postal_code": "97201", "coordinates": {"lat": 45.5152336, "lng": -122.6823057}}
+{"address1": "3161 Southeast 81st Avenue", "address2": "", "city": "Portland", "state": "OR", "postal_code": "97206", "coordinates": {"lat": 45.4993425, "lng": -122.5800668}}
+{"address1": "745 Northwest Hoyt Street", "address2": "3963", "city": "Portland", "state": "OR", "postal_code": "97209", "coordinates": {"lat": 45.5275579, "lng": -122.6790792}}
+{"address1": "1831 Southeast Hawthorne Boulevard", "address2": "303", "city": "Portland", "state": "OR", "postal_code": "97214", "coordinates": {"lat": 45.5124068, "lng": -122.6467951}}
+{"address1": "6710 North Michigan Avenue", "address2": "", "city": "Portland", "state": "OR", "postal_code": "97217", "coordinates": {"lat": 45.5712963, "lng": -122.676538}}
+{"address1": "7000 Southwest Vermont Street", "address2": "1208", "city": "Portland", "state": "OR", "postal_code": "97223", "coordinates": {"lat": 45.4757314, "lng": -122.7486881}}
+{"address1": "3381 Northeast 162nd Avenue", "address2": "", "city": "Portland", "state": "OR", "postal_code": "97230", "coordinates": {"lat": 45.5475628, "lng": -122.497508}}
+{"address1": "2055 Northeast Glisan Street", "address2": "", "city": "Portland", "state": "OR", "postal_code": "97232", "coordinates": {"lat": 45.5269496, "lng": -122.6451646}}
+{"address1": "5332 Southeast 137th Avenue", "address2": "", "city": "Portland", "state": "OR", "postal_code": "97236", "coordinates": {"lat": 45.4842648, "lng": -122.521986}}
+{"address1": "12242 Southwest Garden Place", "address2": "", "city": "Tigard", "state": "OR", "postal_code": "97223", "coordinates": {"lat": 45.4318793, "lng": -122.7634304}}
+{"address1": "13815 Southwest Pacific Highway", "address2": "30", "city": "Tigard", "state": "OR", "postal_code": "97223", "coordinates": {"lat": 45.4202065, "lng": -122.7864027}}
+{"address1": "6950 Southwest Hampton Street", "address2": "203", "city": "Tigard", "state": "OR", "postal_code": "97223", "coordinates": {"lat": 45.4270673, "lng": -122.7484834}}
+{"address1": "9495 Southwest Shady Place", "address2": "", "city": "Tigard", "state": "OR", "postal_code": "97223", "coordinates": {"lat": 45.4513642, "lng": -122.7517188}}
+{"address1": "11041 Southwest Summerfield Drive", "address2": "1", "city": "Tigard", "state": "OR", "postal_code": "97224", "coordinates": {"lat": 45.4070509, "lng": -122.7901116}}
+{"address1": "15228 Southwest Deepbrook Lane", "address2": "", "city": "Tigard", "state": "OR", "postal_code": "97224", "coordinates": {"lat": 45.4073531, "lng": -122.8333393}}
+{"address1": "15305 Southwest Missouri Avenue", "address2": "", "city": "Tigard", "state": "OR", "postal_code": "97224", "coordinates": {"lat": 45.4089644, "lng": -122.8356585}}
+{"address1": "16697 Southwest 108th Avenue", "address2": "", "city": "Tigard", "state": "OR", "postal_code": "97224", "coordinates": {"lat": 45.3993339, "lng": -122.7881626}}
 {"address1": "4696 Bull Run Road", "address2": "", "city": "Ashland City", "state": "TN", "postal_code": "37015", "coordinates": {"lat": 36.241285, "lng": -86.940741}}
 {"address1": "1021 Heathfield Circle", "address2": "", "city": "Brentwood", "state": "TN", "postal_code": "37027", "coordinates": {"lat": 36.024992, "lng": -86.75297200000001}}
 {"address1": "123 Villa View Court", "address2": "", "city": "Brentwood", "state": "TN", "postal_code": "37027", "coordinates": {"lat": 36.0355599, "lng": -86.7806023}}
@@ -3090,6 +3140,56 @@
 {"address1": "880 General George Patton Road", "address2": "", "city": "Nashville", "state": "TN", "postal_code": "37221", "coordinates": {"lat": 36.066698, "lng": -86.945662}}
 {"address1": "9360 Hester Beasley Road", "address2": "", "city": "Nashville", "state": "TN", "postal_code": "37221", "coordinates": {"lat": 36.018232, "lng": -87.025104}}
 {"address1": "8673 Burkitt Place Drive", "address2": "", "city": "Nolensville", "state": "TN", "postal_code": "37135", "coordinates": {"lat": 35.987552, "lng": -86.6763689}}
+{"address1": "6404 Hudson Street", "address2": "", "city": "Austin", "state": "TX", "postal_code": "78721", "coordinates": {"lat": 30.2705801, "lng": -97.6724402}}
+{"address1": "12603 Beaconsdale Circle", "address2": "", "city": "Austin", "state": "TX", "postal_code": "78727", "coordinates": {"lat": 30.4255693, "lng": -97.7135246}}
+{"address1": "2100 Lamplight Village Circle", "address2": "", "city": "Austin", "state": "TX", "postal_code": "78727", "coordinates": {"lat": 30.4170106, "lng": -97.6956884}}
+{"address1": "3830 Williamsburg Circle", "address2": "", "city": "Austin", "state": "TX", "postal_code": "78731", "coordinates": {"lat": 30.3664091, "lng": -97.7550776}}
+{"address1": "4107 Edwards Mountain Drive", "address2": "", "city": "Austin", "state": "TX", "postal_code": "78731", "coordinates": {"lat": 30.3495873, "lng": -97.7693124}}
+{"address1": "4809 West Park Drive", "address2": "", "city": "Austin", "state": "TX", "postal_code": "78731", "coordinates": {"lat": 30.3256415, "lng": -97.7529277}}
+{"address1": "1313 1/2 North Weston Lane", "address2": "", "city": "Austin", "state": "TX", "postal_code": "78733", "coordinates": {"lat": 30.3280833, "lng": -97.8448088}}
+{"address1": "5701 Hero Drive", "address2": "", "city": "Austin", "state": "TX", "postal_code": "78735", "coordinates": {"lat": 30.2515309, "lng": -97.8453943}}
+{"address1": "7801 1/2 Metropolis Drive", "address2": "", "city": "Austin", "state": "TX", "postal_code": "78744", "coordinates": {"lat": 30.2071632, "lng": -97.6934244}}
+{"address1": "2102 1/2 Rue De St Germaine", "address2": "", "city": "Austin", "state": "TX", "postal_code": "78746", "coordinates": {"lat": 30.3063388, "lng": -97.7845091}}
+{"address1": "2616 Calvin Street", "address2": "", "city": "Dallas", "state": "TX", "postal_code": "75204", "coordinates": {"lat": 32.8108765, "lng": -96.787948}}
+{"address1": "4336 Wyoming Street", "address2": "", "city": "Dallas", "state": "TX", "postal_code": "75211", "coordinates": {"lat": 32.713687, "lng": -96.8898935}}
+{"address1": "1646 East Elmore Avenue", "address2": "", "city": "Dallas", "state": "TX", "postal_code": "75216", "coordinates": {"lat": 32.7175938, "lng": -96.7980817}}
+{"address1": "2502 Lea Crest Drive", "address2": "", "city": "Dallas", "state": "TX", "postal_code": "75216", "coordinates": {"lat": 32.7100274, "lng": -96.789342}}
+{"address1": "2616 Bowling Green Avenue", "address2": "", "city": "Dallas", "state": "TX", "postal_code": "75216", "coordinates": {"lat": 32.7162642, "lng": -96.7970474}}
+{"address1": "3130 South Ewing Avenue", "address2": "", "city": "Dallas", "state": "TX", "postal_code": "75216", "coordinates": {"lat": 32.706335, "lng": -96.810595}}
+{"address1": "4124 Huckleberry Circle", "address2": "", "city": "Dallas", "state": "TX", "postal_code": "75216", "coordinates": {"lat": 32.6936872, "lng": -96.8219871}}
+{"address1": "306 Guthrie Street", "address2": "", "city": "Dallas", "state": "TX", "postal_code": "75224", "coordinates": {"lat": 32.7182922, "lng": -96.826809}}
+{"address1": "5739 Russcrest Drive", "address2": "", "city": "Dallas", "state": "TX", "postal_code": "75227", "coordinates": {"lat": 32.7823263, "lng": -96.7037142}}
+{"address1": "3919 Juneau Avenue", "address2": "", "city": "Dallas", "state": "TX", "postal_code": "75233", "coordinates": {"lat": 32.6988775, "lng": -96.8848285}}
+{"address1": "1116 Parsons Lane", "address2": "", "city": "Fort Worth", "state": "TX", "postal_code": "76106", "coordinates": {"lat": 32.8193666, "lng": -97.3406516}}
+{"address1": "4108 Pebblebrook Court", "address2": "", "city": "Fort Worth", "state": "TX", "postal_code": "76109", "coordinates": {"lat": 32.7080301, "lng": -97.3809443}}
+{"address1": "805 Fairview Street", "address2": "", "city": "Fort Worth", "state": "TX", "postal_code": "76111", "coordinates": {"lat": 32.7744224, "lng": -97.2953535}}
+{"address1": "1301 East Anthony Street", "address2": "", "city": "Fort Worth", "state": "TX", "postal_code": "76115", "coordinates": {"lat": 32.6858594, "lng": -97.3093855}}
+{"address1": "9601 North Normandale Street", "address2": "", "city": "Fort Worth", "state": "TX", "postal_code": "76116", "coordinates": {"lat": 32.7320564, "lng": -97.4887908}}
+{"address1": "9836 Camp Bowie West Boulevard", "address2": "", "city": "Fort Worth", "state": "TX", "postal_code": "76116", "coordinates": {"lat": 32.7249063, "lng": -97.4963002}}
+{"address1": "6941 Sunflower Circle North", "address2": "", "city": "Fort Worth", "state": "TX", "postal_code": "76120", "coordinates": {"lat": 32.7740126, "lng": -97.2085754}}
+{"address1": "12441 Kollmeyer Way", "address2": "", "city": "Fort Worth", "state": "TX", "postal_code": "76126", "coordinates": {"lat": 32.5878355, "lng": -97.5487039}}
+{"address1": "1673 Fagan Drive", "address2": "", "city": "Fort Worth", "state": "TX", "postal_code": "76131", "coordinates": {"lat": 32.8571838, "lng": -97.3395523}}
+{"address1": "5921 Sea Breeze Lane", "address2": "", "city": "Fort Worth", "state": "TX", "postal_code": "76135", "coordinates": {"lat": 32.8246786, "lng": -97.4169906}}
+{"address1": "1310 Tuam Street", "address2": "", "city": "Houston", "state": "TX", "postal_code": "77004", "coordinates": {"lat": 29.7414328, "lng": -95.3724252}}
+{"address1": "2519 Atwood Glen Lane", "address2": "", "city": "Houston", "state": "TX", "postal_code": "77014", "coordinates": {"lat": 29.9755326, "lng": -95.4594322}}
+{"address1": "4151 Surreydon Drive", "address2": "", "city": "Houston", "state": "TX", "postal_code": "77014", "coordinates": {"lat": 29.9785623, "lng": -95.4854067}}
+{"address1": "8313 Hoffman Street", "address2": "", "city": "Houston", "state": "TX", "postal_code": "77016", "coordinates": {"lat": 29.8360528, "lng": -95.3124023}}
+{"address1": "511 Kress Street", "address2": "", "city": "Houston", "state": "TX", "postal_code": "77020", "coordinates": {"lat": 29.779713, "lng": -95.3070364}}
+{"address1": "15810 Bertasz Drive", "address2": "", "city": "Houston", "state": "TX", "postal_code": "77049", "coordinates": {"lat": 29.8098358, "lng": -95.1514663}}
+{"address1": "2606 Grand Canyon Drive", "address2": "", "city": "Houston", "state": "TX", "postal_code": "77067", "coordinates": {"lat": 29.9628422, "lng": -95.4731973}}
+{"address1": "2610 Teague Road", "address2": "", "city": "Houston", "state": "TX", "postal_code": "77080", "coordinates": {"lat": 29.8191059, "lng": -95.5409886}}
+{"address1": "9917 Rolling Wagon Drive", "address2": "", "city": "Houston", "state": "TX", "postal_code": "77080", "coordinates": {"lat": 29.8307151, "lng": -95.5400746}}
+{"address1": "10815 Radford Lane", "address2": "", "city": "Houston", "state": "TX", "postal_code": "77099", "coordinates": {"lat": 29.6512269, "lng": -95.5715633}}
+{"address1": "158 Ashley Loop", "address2": "", "city": "San Antonio", "state": "TX", "postal_code": "78253", "coordinates": {"lat": 29.4133887, "lng": -98.8112874}}
+{"address1": "165 Crowned Crane", "address2": "", "city": "San Antonio", "state": "TX", "postal_code": "78253", "coordinates": {"lat": 29.4409836, "lng": -98.8088404}}
+{"address1": "165 Spurfowl", "address2": "", "city": "San Antonio", "state": "TX", "postal_code": "78253", "coordinates": {"lat": 29.4405168, "lng": -98.8109229}}
+{"address1": "177 Perch Horizon", "address2": "", "city": "San Antonio", "state": "TX", "postal_code": "78253", "coordinates": {"lat": 29.4344754, "lng": -98.8056103}}
+{"address1": "186 Desert Bloom", "address2": "", "city": "San Antonio", "state": "TX", "postal_code": "78253", "coordinates": {"lat": 29.4816573, "lng": -98.8115877}}
+{"address1": "233 Antler Bend", "address2": "", "city": "San Antonio", "state": "TX", "postal_code": "78253", "coordinates": {"lat": 29.4208719, "lng": -98.8061126}}
+{"address1": "286 Gemsbok Gate", "address2": "", "city": "San Antonio", "state": "TX", "postal_code": "78253", "coordinates": {"lat": 29.4314386, "lng": -98.8104409}}
+{"address1": "3907 CR 382", "address2": "", "city": "San Antonio", "state": "TX", "postal_code": "78253", "coordinates": {"lat": 29.4711793, "lng": -98.8065403}}
+{"address1": "912 CR 375", "address2": "", "city": "San Antonio", "state": "TX", "postal_code": "78253", "coordinates": {"lat": 29.4382337, "lng": -98.8367093}}
+{"address1": "520 Waycross Road", "address2": "", "city": "San Antonio", "state": "TX", "postal_code": "78264", "coordinates": {"lat": 29.141949, "lng": -98.5062258}}
 {"address1": "1172 North Vermont Street", "address2": "", "city": "Arlington", "state": "VA", "postal_code": "22201", "coordinates": {"lat": 38.8844138, "lng": -77.1152031}}
 {"address1": "1309 Kirkwood Road", "address2": "", "city": "Arlington", "state": "VA", "postal_code": "22201", "coordinates": {"lat": 38.8881107, "lng": -77.1004317}}
 {"address1": "1316 North Adams Court", "address2": "", "city": "Arlington", "state": "VA", "postal_code": "22201", "coordinates": {"lat": 38.8884487, "lng": -77.0874627}}
