@@ -81,13 +81,60 @@ more addresses than the filters can supply.
 >>> random_address.list_states()
 ['AK', 'AL', 'AR', 'AZ', 'CA', ...]
 >>> random_address.state_counts()
-{'AK': 174, 'AL': 193, 'AR': 190, 'AZ': 199, 'CA': 332, ...}
+{'AK': 174, 'AL': 193, 'AR': 190, 'AZ': 199, 'CA': 331, ...}
 >>> random_address.summary()
-{'total_addresses': 3300, 'unique_states': 18, 'unique_cities': 426, 'unique_postal_codes': 694}
+{'total_addresses': 3400, 'unique_states': 20, 'unique_cities': 437, 'unique_postal_codes': 746}
 ```
 
 `list_cities()`, `list_postal_codes()`, `city_counts()` and `postal_code_counts()` work the
 same way.
+
+### Counting matches
+
+`count()` answers how many addresses match, without drawing one. It takes the same `state`,
+`city` and `postal_code` filters as `real_random_address()`, and they combine the same way.
+
+```python
+>>> import random_address
+
+>>> random_address.count()
+3400
+>>> random_address.count(state='CA')
+331
+>>> random_address.count(city='Arlington')
+52
+>>> random_address.count(postal_code='22204')
+13
+>>> random_address.count(state='TX', city='Houston')
+10
+```
+
+Filters combine, which is how you tell two places of the same name apart. Fifty of those
+Arlingtons are in Virginia and two are in Massachusetts:
+
+```python
+>>> random_address.count(state='VA', city='Arlington')
+50
+>>> random_address.count(state='MA', city='Arlington')
+2
+```
+
+Where the lookup functions raise `NoMatchingAddressError`, `count()` returns `0` — asking how
+many there are is a question that a zero answers:
+
+```python
+>>> random_address.count(state='ZZ')
+0
+```
+
+It is the honest way to size a fixture before asking for one, since
+`real_random_addresses(n, unique=True)` raises when `n` exceeds the number of matches:
+
+```python
+>>> total = random_address.count(state='OR')
+>>> len(random_address.real_random_addresses(total, state='OR'))
+50
+```
 
 ## Command line
 
@@ -105,6 +152,7 @@ $ random-address summary
 
 - `real_random_address(*, state=None, city=None, postal_code=None, seed=None)`: one address, optionally filtered.
 - `real_random_addresses(count=1, *, state=None, city=None, postal_code=None, seed=None, unique=True)`: several addresses.
+- `count(*, state=None, city=None, postal_code=None)`: how many addresses match, `0` if none do.
 - `list_states()`, `list_cities()`, `list_postal_codes()`: the values present in the dataset.
 - `state_counts()`, `city_counts()`, `postal_code_counts()`: how many addresses each value has.
 - `summary()`: dataset-wide totals.
@@ -242,6 +290,8 @@ All data collected from the [OpenAddresses](https://openaddresses.io/) project, 
 * City of Honolulu (HI)
 * Arlington County (VA)
 * Durham County (NC)
+* City of Portland (OR)
+* Texas Natural Resources Information System, StratMap Address Points (TX)
 
 ## Requesting New Location Data
 

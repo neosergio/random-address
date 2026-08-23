@@ -155,6 +155,48 @@ def summary() -> Summary:
     }
 
 
+def count(
+    *,
+    state: str | None = None,
+    city: str | None = None,
+    postal_code: str | None = None,
+) -> int:
+    """Count the addresses matching the given filters, without drawing one.
+
+    Filters combine and are matched exactly as they are by
+    :func:`real_random_address`, so state codes and city names are
+    case-insensitive and surrounding whitespace is ignored. Postal codes are
+    matched exactly.
+
+    Unlike the lookup functions, this returns ``0`` rather than raising when
+    nothing matches: asking how many addresses there are is a question that a
+    zero answers.
+
+    Args:
+        state: Two-letter state code, for example ``"CA"``. Counts every state
+            when omitted.
+        city: City name, for example ``"Newark"``. Counts every city when
+            omitted.
+        postal_code: Postal code, for example ``"94560"``. Counts every postal
+            code when omitted.
+
+    Returns:
+        How many addresses match, or the size of the whole dataset when no
+        filter is given.
+
+    Example:
+        >>> count()
+        3400
+        >>> count(state="CA")
+        331
+        >>> count(state="VA", city="Arlington")
+        50
+        >>> count(state="ZZ")
+        0
+    """
+    return len(_pool(state=state, city=city, postal_code=postal_code))
+
+
 def _pool(
     *,
     state: str | None,

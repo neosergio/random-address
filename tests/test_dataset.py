@@ -37,9 +37,74 @@ ADDRESS_FIELDS = {"address1", "address2", "city", "state", "postal_code", "coord
 STATE = re.compile(r"^[A-Z]{2}$")
 POSTAL_CODE = re.compile(r"^\d{5}$")
 
+# The shape check above is happy with "ZZ". The dataset promises a real place,
+# so the code has to be one that exists. DC is included; the territories are not,
+# because nothing in the dataset claims one yet and admitting them here would
+# quietly widen the promise.
+US_STATES = frozenset(
+    {
+        "AL",
+        "AK",
+        "AZ",
+        "AR",
+        "CA",
+        "CO",
+        "CT",
+        "DE",
+        "DC",
+        "FL",
+        "GA",
+        "HI",
+        "ID",
+        "IL",
+        "IN",
+        "IA",
+        "KS",
+        "KY",
+        "LA",
+        "ME",
+        "MD",
+        "MA",
+        "MI",
+        "MN",
+        "MS",
+        "MO",
+        "MT",
+        "NE",
+        "NV",
+        "NH",
+        "NJ",
+        "NM",
+        "NY",
+        "NC",
+        "ND",
+        "OH",
+        "OK",
+        "OR",
+        "PA",
+        "RI",
+        "SC",
+        "SD",
+        "TN",
+        "TX",
+        "UT",
+        "VT",
+        "VA",
+        "WA",
+        "WV",
+        "WI",
+        "WY",
+    }
+)
+
 # Loose bounds covering the continental US, Alaska, Hawaii and Puerto Rico.
 MIN_LAT, MAX_LAT = 17.0, 72.0
 MIN_LNG, MAX_LNG = -180.0, -64.0
+
+# What a latitude and longitude can be at all, regardless of country. The US box
+# is strictly inside this, so these only fire on a truly nonsensical coordinate
+# such as a swapped lat/lng pair.
+LAT_LIMIT, LNG_LIMIT = 90.0, 180.0
 
 
 @pytest.fixture(scope="session")
@@ -50,6 +115,18 @@ def lines() -> list[str]:
 @pytest.fixture(scope="session")
 def records(lines: list[str]) -> list[Record]:
     return [json.loads(line) for line in lines]
+
+
+def duplicate_key(record: Record) -> tuple[str, ...]:
+    """Canonical identity of an address, for deciding whether two are the same.
+
+    Mirrors ``add_addresses._key`` so that what the ingest script skips as a
+    duplicate is exactly what this file refuses to ship.
+    """
+    return tuple(
+        " ".join(str(record.get(field, "")).split()).casefold()
+        for field in ("state", "city", "postal_code", "address1", "address2")
+    )
 
 
 def sort_key(record: Record) -> tuple[str, ...]:
@@ -105,6 +182,11 @@ class TestRecords:
         for record in records:
             assert STATE.match(record["state"]), record
 
+    def test_state_is_a_real_us_state_or_dc(self, records: list[Record]) -> None:
+        unknown = sorted({record["state"] for record in records} - US_STATES)
+
+        assert not unknown, f"dataset contains states that do not exist: {unknown}"
+
     def test_postal_code_is_five_digits(self, records: list[Record]) -> None:
         for record in records:
             assert POSTAL_CODE.match(record["postal_code"]), record
@@ -112,11 +194,22 @@ class TestRecords:
     def test_coordinates_are_finite_and_inside_the_us(self, records: list[Record]) -> None:
         for record in records:
             coordinates = record["coordinates"]
+            assert isinstance(coordinates, dict), record
             assert set(coordinates) == {"lat", "lng"}, record
 
             lat, lng = coordinates["lat"], coordinates["lng"]
+            # float, not "numeric": every record is written out as a float, and
+            # accepting an int here would let a truncated coordinate through.
             assert isinstance(lat, float) and isfinite(lat), record
             assert isinstance(lng, float) and isfinite(lng), record
+
+            # The global limits are redundant against the US box below, and that
+            # is the point: they state the contract the README documents, so a
+            # future non-US dataset loosening the box still cannot ship a
+            # swapped lat/lng pair.
+            assert -LAT_LIMIT <= lat <= LAT_LIMIT, record
+            assert -LNG_LIMIT <= lng <= LNG_LIMIT, record
+
             assert MIN_LAT <= lat <= MAX_LAT, record
             assert MIN_LNG <= lng <= MAX_LNG, record
 
@@ -164,15 +257,14 @@ class TestRecords:
         )
 
     def test_there_are_no_duplicate_addresses(self, records: list[Record]) -> None:
-        counts = Counter(
-            (
-                record["state"],
-                record["postal_code"],
-                record["address1"].casefold(),
-                record["address2"].casefold(),
-            )
-            for record in records
-        )
+        """Two records are the same address when their canonical keys match.
+
+        The key carries city as well as state, and collapses internal whitespace
+        as well as case, so "1  Main  Street" and "1 Main Street" cannot both
+        ship. address2 stays in the key because two apartments in one building
+        are different addresses; dropping it would discard real units.
+        """
+        counts = Counter(duplicate_key(record) for record in records)
         duplicates = [key for key, total in counts.items() if total > 1]
 
         assert not duplicates, f"duplicate addresses: {sorted(duplicates)[:5]}"

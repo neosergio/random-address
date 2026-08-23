@@ -9,7 +9,10 @@ code, some no city.
 from __future__ import annotations
 
 import argparse
+import json
 import random
+from collections import Counter
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -18,6 +21,8 @@ from add_addresses import (
     _balanced_sample,
     _convert,
     _key,
+    _report_summary,
+    main,
     normalize_street,
     titlecase,
 )
@@ -237,6 +242,7 @@ class TestKey:
     def address(self, **overrides: str) -> dict[str, Any]:
         base = {
             "state": "NC",
+            "city": "Durham",
             "postal_code": "27701",
             "address1": "100 Main Street",
             "address2": "",
@@ -262,6 +268,127 @@ class TestKey:
 
     def test_the_same_street_in_two_states_is_not_a_duplicate(self) -> None:
         assert _key(self.address(state="NC")) != _key(self.address(state="CA"))
+
+    def test_the_same_street_in_two_cities_is_not_a_duplicate(self) -> None:
+        # Durham and Raleigh both have a Main Street, and both are in NC.
+        assert _key(self.address(city="Durham")) != _key(self.address(city="Raleigh"))
+
+    def test_matching_ignores_runs_of_whitespace(self) -> None:
+        assert _key(self.address(address1="100  Main   Street")) == _key(self.address())
+
+
+class TestReportSummary:
+    def test_accounts_for_every_record_read(self, capsys: pytest.CaptureFixture[str]) -> None:
+        _report_summary(
+            read=1000,
+            valid=40,
+            duplicates=10,
+            rejected=Counter({"bad postal code": 950}),
+            selected=25,
+            existing=3300,
+        )
+
+        printed = capsys.readouterr().out
+        assert "Read" in printed
+        # valid + duplicates + rejected must account for everything read, which
+        # is the whole point of printing the tally.
+        assert "1,000" in printed
+        assert "50" in printed and "10" in printed and "950" in printed
+        assert "dataset 3300 -> 3325" in printed
+
+    def test_labels_the_change_as_planned_on_a_dry_run(
+        self, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        # "Added 25" printed directly above "Dry run, nothing written" claims a
+        # write that did not happen.
+        _report_summary(
+            read=1000,
+            valid=40,
+            duplicates=10,
+            rejected=Counter({"bad postal code": 950}),
+            selected=25,
+            existing=3300,
+            dry_run=True,
+        )
+
+        printed = capsys.readouterr().out
+        assert "Would add" in printed
+        assert "Added" not in printed
+        # The counts themselves are unchanged by the label.
+        assert "dataset 3300 -> 3325" in printed
+
+    def test_omits_the_added_line_when_nothing_was_selected(
+        self, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        _report_summary(
+            read=100,
+            valid=0,
+            duplicates=0,
+            rejected=Counter({"no city": 100}),
+            selected=0,
+            existing=3300,
+        )
+
+        assert "Added" not in capsys.readouterr().out
+
+
+class TestMain:
+    """The failure paths, which are the ones that write nothing and must explain why."""
+
+    def source(self, tmp_path: Path, *cities: str) -> Path:
+        path = tmp_path / "source.geojson"
+        path.write_text(
+            "\n".join(
+                json.dumps(feature(number=str(100 + n), city=city)) for n, city in enumerate(cities)
+            ),
+            encoding="utf-8",
+        )
+        return path
+
+    def test_reports_the_tally_when_no_requested_city_matches(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        # The source is fine and its records validate; they are simply not in
+        # Charlotte. Without the tally this exits on "No usable addresses found",
+        # which reads as an unusable source rather than a mistyped --cities.
+        source = self.source(tmp_path, "BOLIVIA", "BOLIVIA", "SHALLOTTE")
+
+        code = main([str(source), "--state", "NC", "--cities", "Charlotte", "--dry-run"])
+
+        captured = capsys.readouterr()
+        assert code == 1
+        assert "No usable addresses found." in captured.err
+        assert "Read" in captured.out
+        # Three records were read and all three validated; none was selected.
+        assert "3" in captured.out
+        assert "Selected" in captured.out
+        assert "Added" not in captured.out
+
+    def test_a_dry_run_does_not_claim_to_have_added_anything(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        source = self.source(tmp_path, "BOLIVIA", "BOLIVIA", "BOLIVIA")
+
+        code = main([str(source), "--state", "NC", "--count", "2", "--dry-run"])
+
+        printed = capsys.readouterr().out
+        assert code == 0
+        assert "Would add" in printed
+        assert "Added" not in printed
+        assert "Dry run, nothing written." in printed
+
+    def test_reports_the_tally_when_the_source_yields_nothing(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        source = tmp_path / "empty.geojson"
+        source.write_text("", encoding="utf-8")
+
+        code = main([str(source), "--state", "NC", "--dry-run"])
+
+        captured = capsys.readouterr()
+        assert code == 1
+        assert "No usable addresses found." in captured.err
+        assert "Read" in captured.out
 
 
 class TestAllocate:
