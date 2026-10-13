@@ -13,21 +13,13 @@ rewritten 500 KB line.
 from __future__ import annotations
 
 import json
-import sys
 from collections import defaultdict
 from functools import cache
 from importlib import resources
+from importlib.resources.abc import Traversable
 from typing import Literal, TypeAlias
 
 from .types import Address
-
-if sys.version_info >= (3, 11):
-    from importlib.resources.abc import Traversable
-else:
-    # importlib.resources.abc does not exist before 3.11, and importlib.abc
-    # is deprecated and removed in 3.14. Neither spelling covers the whole
-    # supported range, so each version imports from where it still works.
-    from importlib.abc import Traversable
 
 DATA_FILE = ("data", "addresses-us.jsonl")
 
@@ -54,13 +46,16 @@ def normalize(field: Field, value: str) -> str:
 def data_source() -> Traversable:
     """Return the bundled dataset file.
 
-    Traversable.joinpath only takes several children from 3.11 on, and a
-    zip-imported package gets a Traversable rather than a Path, so the components
-    are descended one at a time: every version and every loader agrees on that.
-    Both the loader and the dataset integrity tests come through here, so the
-    walk is written once.
+    A zip-imported package gets a Traversable rather than a Path, and a
+    third-party loader's Traversable is not guaranteed to take several children
+    in one joinpath call, so the components are descended one at a time: every
+    loader agrees on that. Both the loader and the dataset integrity tests come
+    through here, so the walk is written once.
+
+    The package is named from ``__name__`` rather than ``__package__``, which
+    is typed ``str | None`` and would need narrowing for no benefit.
     """
-    source = resources.files(__package__)
+    source = resources.files(__name__.rpartition(".")[0])
     for part in DATA_FILE:
         source = source.joinpath(part)
 
@@ -84,7 +79,9 @@ def index(field: Field) -> dict[str, tuple[Address, ...]]:
     for address in load_addresses():
         value = address.get(field)
         if value:
-            buckets[normalize(field, value)].append(address)
+            # pyrefly widens TypedDict.get on a Literal key to object; mypy
+            # correctly infers str | None. Remove once pyrefly agrees.
+            buckets[normalize(field, value)].append(address)  # pyrefly: ignore[bad-argument-type]
     return {key: tuple(addresses) for key, addresses in buckets.items()}
 
 
@@ -93,7 +90,8 @@ def matches(address: Address, field: Field, value: str) -> bool:
     own_value = address.get(field)
     if not own_value:
         return False
-    return normalize(field, own_value) == normalize(field, value)
+    # Same pyrefly TypedDict.get inference gap as in index().
+    return normalize(field, own_value) == normalize(field, value)  # pyrefly: ignore[bad-argument-type]
 
 
 def clear_caches() -> None:

@@ -24,7 +24,8 @@ Run the following to install:
 $ pip install random-address
 ```
 
-Requires Python 3.10 or newer.
+Requires Python 3.11 or newer. On Python 3.10, pip installs 2.1.1, and on 3.9 or older it
+installs 1.3.0; both keep working, they just do not receive new features or data.
 
 ## Usage
 
