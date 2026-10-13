@@ -192,3 +192,30 @@ class TestNear:
 
         assert raised.value.code == 2
         assert "expected LAT,LNG" in capsys.readouterr().err
+
+
+class TestCluster:
+    def test_prints_a_group_from_the_real_dataset(self, capsys: pytest.CaptureFixture[str]) -> None:
+        code, out, _ = run(capsys, "cluster", "--within-km", "2", "--state", "VA", "--seed", "1")
+
+        assert code == 0
+        assert len(out.splitlines()) == 5
+        assert all(", VA " in line for line in out.splitlines())
+
+    def test_json_is_always_an_array(self, capsys: pytest.CaptureFixture[str]) -> None:
+        _, out, _ = run(capsys, "cluster", "--within-km", "2", "-n", "1", "--format", "json")
+
+        assert isinstance(json.loads(out), list)
+
+    def test_no_compact_group_is_an_error(self, capsys: pytest.CaptureFixture[str]) -> None:
+        code, _, err = run(capsys, "cluster", "--within-km", "0.01", "-n", "500")
+
+        assert code == 1
+        assert "within 0.01 km" in err
+
+    def test_the_radius_is_required(self, capsys: pytest.CaptureFixture[str]) -> None:
+        with pytest.raises(SystemExit) as raised:
+            main(["cluster"])
+
+        assert raised.value.code == 2
+        assert "--within-km" in capsys.readouterr().err

@@ -36,7 +36,8 @@ Requires Python 3.10 or newer.
 ```
 
 Filters combine, so you can narrow by any mix of state, city and postal code. State codes and
-city names are matched case-insensitively.
+city names are matched case-insensitively, and extra spaces in a city name are ignored. A postal
+code can also be passed as an int, as it often arrives from a spreadsheet: `6040` means `'06040'`.
 
 ```python
 >>> real_random_address(state='CA')
@@ -97,6 +98,22 @@ passing only one of them raises `ValueError` rather than quietly ignoring it.
 
 The dataset holds a few dozen addresses per city, so keep radii to a few kilometres around
 the places listed in [COVERAGE.md](COVERAGE.md); far from any of them, the answer is `0`.
+
+### A group of addresses close together
+
+When you need several addresses near each other but do not care where, `real_random_cluster()`
+picks a centre at random and fills the group from the addresses within `within_km` of it:
+
+```python
+>>> from random_address import real_random_cluster
+>>> group = real_random_cluster(5, within_km=1, state='IL', seed=2)
+>>> [member['city'] for member in group]
+['Skokie', 'Skokie', 'Evanston', 'Skokie', 'Skokie']
+```
+
+The centre comes first, every address is within `within_km` of it, and filters narrow where
+the group can come from. If no address has enough neighbours, `NoMatchingAddressError` is
+raised rather than a smaller group being returned.
 
 ### Inspecting the dataset
 
@@ -169,6 +186,7 @@ $ random-address
 $ random-address --state CA --count 2 --format json
 $ random-address --state FL --count 50 --format csv > fixtures.csv
 $ random-address --near 38.8895,-77.0353 --within-km 5 --count 3
+$ random-address cluster --within-km 1 --count 5 --state IL
 $ random-address count --state DC
 196
 $ random-address states
@@ -182,6 +200,7 @@ nothing matches.
 
 - `real_random_address(*, state=None, city=None, postal_code=None, near=None, within_km=None, seed=None)`: one address, optionally filtered.
 - `real_random_addresses(count=1, *, state=None, city=None, postal_code=None, near=None, within_km=None, seed=None, unique=True)`: several addresses.
+- `real_random_cluster(count, *, within_km, state=None, city=None, postal_code=None, seed=None)`: a group of addresses that lie close together.
 - `count(*, state=None, city=None, postal_code=None, near=None, within_km=None)`: how many addresses match, `0` if none do.
 - `list_states()`, `list_cities()`, `list_postal_codes()`: the values present in the dataset.
 - `state_counts()`, `city_counts()`, `postal_code_counts()`: how many addresses each value has.

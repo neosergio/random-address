@@ -41,12 +41,13 @@ def normalize(field: Field, value: str) -> str:
 
     State codes are compared upper-cased and city names case-folded, so that
     ``"ca"`` and ``"newark"`` match the same addresses as ``"CA"`` and
-    ``"Newark"``.
+    ``"Newark"``. Runs of whitespace inside a city name collapse to one space,
+    so ``"Saint  Paul"`` pasted from a form still finds Saint Paul.
     """
     if field == "state":
         return value.strip().upper()
     if field == "city":
-        return value.strip().casefold()
+        return " ".join(value.split()).casefold()
     return value.strip()
 
 

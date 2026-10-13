@@ -15,6 +15,7 @@ from .core import (
     postal_code_counts,
     real_random_address,
     real_random_addresses,
+    real_random_cluster,
     state_counts,
     summary,
 )
@@ -35,6 +36,7 @@ __all__ = [
     "postal_code_counts",
     "real_random_address",
     "real_random_addresses",
+    "real_random_cluster",
     "state_counts",
     "summary",
 ]

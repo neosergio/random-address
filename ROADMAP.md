@@ -84,13 +84,6 @@ satisfy the filters the caller asked for, which is the silent failure 2.0.0 remo
 `NoMatchingAddressError`. `count()` answers "how many are there?" up front, and the caller can widen
 the filters knowingly.
 
-### A separate function for geographic clusters
-
-A dedicated `real_random_address_cluster()` would duplicate the filtering of the existing functions
-with its own rules. The `near` and `within_km` filters added in 2.2.0 cover the same need, "a few
-addresses close to each other", and compose with `state`, `city`, `postal_code`, `seed` and `count()`
-like every other filter.
-
 ### Bringing back the 1.x function names
 
 `real_random_address_by_state()` and the rest were replaced in 2.0.0, deliberately, along with

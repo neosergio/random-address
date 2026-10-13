@@ -57,6 +57,13 @@ def test_warm_lookups_stay_under_a_millisecond(call: Callable[[], object]) -> No
     assert seconds_per_call(call) < 0.001
 
 
+def test_a_state_cluster_stays_under_ten_milliseconds() -> None:
+    def call() -> object:
+        return random_address.real_random_cluster(5, within_km=2, state="CA")
+
+    assert seconds_per_call(call) < 0.01
+
+
 def test_an_unfiltered_radius_search_stays_under_ten_milliseconds() -> None:
     # The radius filter scans every candidate the other filters leave. With no
     # other filter that is the whole dataset, so this is the worst case, and the
