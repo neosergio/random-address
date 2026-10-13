@@ -39,6 +39,37 @@ Known limits, where the floor can be met but the spread cannot without a new sou
 - **Virginia** needs a public domain source outside Arlington.
 - **Connecticut** needs sources for more cities than the two it has.
 
+## After 2.3.0: two small API additions
+
+Candidates for the release after 2.3.0, which is data-only. Both are additive, and both came up while
+reviewing a similar package that offers them.
+
+### Full state names in the `state` filter
+
+`state` takes a two-letter code only, so `real_random_address(state="California")` raises
+`NoMatchingAddressError` and `count(state="California")` returns 0. Accepting the full name as well,
+case-insensitively and with whitespace collapsed like city names, costs one lookup table; the names
+already exist in `data/coverage_report.py` and would move into the package. The code stays what is
+returned: addresses keep `"state": "CA"`.
+
+To settle first: whether an unrecognized name such as `"Calif"` should raise `ValueError` (it is
+neither a code nor a name) or keep the current behaviour of matching nothing. Raising is more helpful
+but would make `count()` raise where it now returns 0. The `--state` CLI option follows whatever the
+library decides.
+
+### Formatting an address for a mailing label
+
+Addresses come back as dictionaries, and the CLI prints them on one line. A helper such as
+`format_address(address)` would return the multi-line form used on an envelope:
+
+```
+1176 South Thomas Street
+Arlington, VA 22204
+```
+
+To settle first: where `address2` goes (its own line, or after `address1` on the same line, as
+USPS prefers), and whether the CLI gains a matching `--format label`.
+
 ## Broader geographic coverage
 
 The dataset holds 29 states as of 2.2.0; COVERAGE.md has the current list. Twenty-two are still
