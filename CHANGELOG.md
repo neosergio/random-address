@@ -1,6 +1,6 @@
 # Changelog
 
-## [2.2.0] - Unreleased
+## [2.2.0] - 2026-10-13
 
 An additive release. Everything from 2.1.1 keeps working unchanged.
 
