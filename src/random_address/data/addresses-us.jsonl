@@ -2971,56 +2971,56 @@
 {"address1": "11516 Jordanus Drive", "address2": "", "city": "Raleigh", "state": "NC", "postal_code": "27617", "coordinates": {"lat": 35.9110316, "lng": -78.8155582}}
 {"address1": "4228 Corners Parkway", "address2": "", "city": "Raleigh", "state": "NC", "postal_code": "27617", "coordinates": {"lat": 35.9211014, "lng": -78.7872996}}
 {"address1": "9825 Derbton Court", "address2": "", "city": "Raleigh", "state": "NC", "postal_code": "27617", "coordinates": {"lat": 35.9095244, "lng": -78.8140451}}
-{"address1": "101 Broadway Boulevard Northeast", "address2": "", "city": "Albuquerque", "state": "NM", "postal_code": "87102", "coordinates": {"lat": 35.08434920249866, "lng": -106.64626354678768}}
-{"address1": "1423 7th Street Northwest", "address2": "", "city": "Albuquerque", "state": "NM", "postal_code": "87102", "coordinates": {"lat": 35.09935877533115, "lng": -106.65402419180909}}
-{"address1": "2119 Rice Avenue Northwest", "address2": "", "city": "Albuquerque", "state": "NM", "postal_code": "87104", "coordinates": {"lat": 35.11038228477045, "lng": -106.67043992980143}}
-{"address1": "3108 Monte Vista Boulevard Northeast", "address2": "", "city": "Albuquerque", "state": "NM", "postal_code": "87106", "coordinates": {"lat": 35.08178329496509, "lng": -106.61021684894402}}
-{"address1": "1600 Avenida Cristo Rey Northwest", "address2": "", "city": "Albuquerque", "state": "NM", "postal_code": "87107", "coordinates": {"lat": 35.13202900854545, "lng": -106.66066066783218}}
-{"address1": "5011 Marquette Avenue Northeast", "address2": "", "city": "Albuquerque", "state": "NM", "postal_code": "87108", "coordinates": {"lat": 35.083835121246686, "lng": -106.58925618254872}}
-{"address1": "6321 Colleen Avenue Northeast", "address2": "", "city": "Albuquerque", "state": "NM", "postal_code": "87109", "coordinates": {"lat": 35.150444286661454, "lng": -106.58030912386951}}
+{"address1": "1111 Coal Avenue Southwest", "address2": "", "city": "Albuquerque", "state": "NM", "postal_code": "87102", "coordinates": {"lat": 35.08219559588643, "lng": -106.66124176607244}}
+{"address1": "424 Atlantic Avenue Southwest", "address2": "", "city": "Albuquerque", "state": "NM", "postal_code": "87102", "coordinates": {"lat": 35.07681667722476, "lng": -106.6541581731855}}
+{"address1": "1719 Corte De Azucena Northwest", "address2": "", "city": "Albuquerque", "state": "NM", "postal_code": "87104", "coordinates": {"lat": 35.11002092302119, "lng": -106.66403025171185}}
+{"address1": "3012 McCoy Place Northeast", "address2": "", "city": "Albuquerque", "state": "NM", "postal_code": "87106", "coordinates": {"lat": 35.10564925894751, "lng": -106.61222107075375}}
+{"address1": "42 Garden Park Circle Northwest", "address2": "", "city": "Albuquerque", "state": "NM", "postal_code": "87107", "coordinates": {"lat": 35.118721997618366, "lng": -106.65847773357804}}
+{"address1": "6809 Acoma Road Southeast", "address2": "", "city": "Albuquerque", "state": "NM", "postal_code": "87108", "coordinates": {"lat": 35.07439245825231, "lng": -106.57149268829333}}
+{"address1": "6616 Lafving Street Northeast", "address2": "", "city": "Albuquerque", "state": "NM", "postal_code": "87109", "coordinates": {"lat": 35.155757644418124, "lng": -106.57474517550592}}
 {"address1": "7404 Loma Del Norte Road Northeast", "address2": "", "city": "Albuquerque", "state": "NM", "postal_code": "87109", "coordinates": {"lat": 35.16437284446891, "lng": -106.56415164109337}}
-{"address1": "7808 American Heritage Drive Northeast", "address2": "", "city": "Albuquerque", "state": "NM", "postal_code": "87109", "coordinates": {"lat": 35.141630258664065, "lng": -106.55683523159499}}
-{"address1": "10040 Gutierrez Road Northeast", "address2": "", "city": "Albuquerque", "state": "NM", "postal_code": "87111", "coordinates": {"lat": 35.13356205692643, "lng": -106.5291417812877}}
-{"address1": "1202 East 27th Street", "address2": "", "city": "Farmington", "state": "NM", "postal_code": "87401", "coordinates": {"lat": 36.75472575671124, "lng": -108.19149277835601}}
-{"address1": "305 134 East 28th Street", "address2": "", "city": "Farmington", "state": "NM", "postal_code": "87401", "coordinates": {"lat": 36.75438087314579, "lng": -108.20038610275623}}
-{"address1": "3605 Coronado Avenue", "address2": "", "city": "Farmington", "state": "NM", "postal_code": "87401", "coordinates": {"lat": 36.76053868540293, "lng": -108.20384269893647}}
-{"address1": "605 Fern Drive", "address2": "", "city": "Farmington", "state": "NM", "postal_code": "87401", "coordinates": {"lat": 36.73493193985002, "lng": -108.27970195292276}}
-{"address1": "4301 Rowe Avenue", "address2": "", "city": "Farmington", "state": "NM", "postal_code": "87402", "coordinates": {"lat": 36.767847269829325, "lng": -108.13998133538894}}
-{"address1": "5500 Antelope Junction", "address2": "", "city": "Farmington", "state": "NM", "postal_code": "87402", "coordinates": {"lat": 36.79649008059217, "lng": -108.13945101839553}}
-{"address1": "5501 Hill'n Dale Drive", "address2": "", "city": "Farmington", "state": "NM", "postal_code": "87402", "coordinates": {"lat": 36.77919105567536, "lng": -108.14046757060919}}
-{"address1": "5537 Beech Street", "address2": "", "city": "Farmington", "state": "NM", "postal_code": "87402", "coordinates": {"lat": 36.77583392782876, "lng": -108.14073837435042}}
+{"address1": "7612 Vista Cedro Court Northeast", "address2": "", "city": "Albuquerque", "state": "NM", "postal_code": "87109", "coordinates": {"lat": 35.14936190193039, "lng": -106.55886728947063}}
+{"address1": "5311 Estrellita Del Norte Road Northeast", "address2": "", "city": "Albuquerque", "state": "NM", "postal_code": "87111", "coordinates": {"lat": 35.13952949017365, "lng": -106.53805863562448}}
+{"address1": "1000 Walnut Drive", "address2": "14", "city": "Farmington", "state": "NM", "postal_code": "87401", "coordinates": {"lat": 36.73326836797939, "lng": -108.22348253951061}}
+{"address1": "2080 Afton Place", "address2": "A", "city": "Farmington", "state": "NM", "postal_code": "87401", "coordinates": {"lat": 36.72133096606875, "lng": -108.18049781475395}}
+{"address1": "214 West Animas Street", "address2": "", "city": "Farmington", "state": "NM", "postal_code": "87401", "coordinates": {"lat": 36.7273696434404, "lng": -108.20782124526099}}
+{"address1": "322 North Vine Avenue", "address2": "", "city": "Farmington", "state": "NM", "postal_code": "87401", "coordinates": {"lat": 36.73313866783193, "lng": -108.19722696648614}}
+{"address1": "2901 East 18th Street", "address2": "", "city": "Farmington", "state": "NM", "postal_code": "87402", "coordinates": {"lat": 36.74625937011299, "lng": -108.168123855988}}
+{"address1": "3401 Majesta Place", "address2": "", "city": "Farmington", "state": "NM", "postal_code": "87402", "coordinates": {"lat": 36.769713032211996, "lng": -108.16391478401941}}
+{"address1": "5601 Greenwood Drive", "address2": "", "city": "Farmington", "state": "NM", "postal_code": "87402", "coordinates": {"lat": 36.7818517821964, "lng": -108.13875812682095}}
+{"address1": "6001 McCarty Avenue", "address2": "", "city": "Farmington", "state": "NM", "postal_code": "87402", "coordinates": {"lat": 36.78455522002876, "lng": -108.11641697668142}}
 {"address1": "6001 Penny Lane", "address2": "", "city": "Farmington", "state": "NM", "postal_code": "87415", "coordinates": {"lat": 36.78525170923574, "lng": -108.10358674263011}}
 {"address1": "8123 East Main Street", "address2": "", "city": "Farmington", "state": "NM", "postal_code": "87415", "coordinates": {"lat": 36.79120550358717, "lng": -108.09913539255044}}
-{"address1": "1012 North Burk Street", "address2": "", "city": "Hobbs", "state": "NM", "postal_code": "88240", "coordinates": {"lat": 32.71061614287913, "lng": -103.14581146980784}}
-{"address1": "1801 East Rose Lane", "address2": "", "city": "Hobbs", "state": "NM", "postal_code": "88240", "coordinates": {"lat": 32.723189695610984, "lng": -103.11501325414987}}
-{"address1": "318 East Taylor Street", "address2": "", "city": "Hobbs", "state": "NM", "postal_code": "88240", "coordinates": {"lat": 32.70213717572615, "lng": -103.13298525043317}}
-{"address1": "3600 C304 North Skyview Street", "address2": "", "city": "Hobbs", "state": "NM", "postal_code": "88240", "coordinates": {"lat": 32.738746991546044, "lng": -103.1295462372374}}
-{"address1": "705 West Calle Sur", "address2": "", "city": "Hobbs", "state": "NM", "postal_code": "88240", "coordinates": {"lat": 32.743862646447816, "lng": -103.14370743418596}}
-{"address1": "1502 West Hoot Owl Court", "address2": "", "city": "Hobbs", "state": "NM", "postal_code": "88242", "coordinates": {"lat": 32.7714873756908, "lng": -103.15454970651764}}
-{"address1": "337 West Lovelady Road", "address2": "", "city": "Hobbs", "state": "NM", "postal_code": "88242", "coordinates": {"lat": 32.7617702301424, "lng": -103.13874769480319}}
-{"address1": "6109 North Greyhound Place", "address2": "", "city": "Hobbs", "state": "NM", "postal_code": "88242", "coordinates": {"lat": 32.7699171798731, "lng": -103.18208473124976}}
-{"address1": "700 East Baregrass Lane", "address2": "", "city": "Hobbs", "state": "NM", "postal_code": "88242", "coordinates": {"lat": 32.79255345033819, "lng": -103.12953964714595}}
-{"address1": "7822 North Valdez Street", "address2": "", "city": "Hobbs", "state": "NM", "postal_code": "88242", "coordinates": {"lat": 32.7903040450854, "lng": -103.15111161947188}}
-{"address1": "1070 Bali Road Southeast", "address2": "", "city": "Rio Rancho", "state": "NM", "postal_code": "87124", "coordinates": {"lat": 35.253353873676375, "lng": -106.71414591614668}}
-{"address1": "1104 Northern Boulevard Northeast", "address2": "", "city": "Rio Rancho", "state": "NM", "postal_code": "87124", "coordinates": {"lat": 35.27383986476192, "lng": -106.71431410488708}}
-{"address1": "1203 Abrazo Road Northeast", "address2": "", "city": "Rio Rancho", "state": "NM", "postal_code": "87124", "coordinates": {"lat": 35.27301759761744, "lng": -106.71200205994803}}
-{"address1": "1517 L2 Meadowlark Lane Southeast", "address2": "", "city": "Rio Rancho", "state": "NM", "postal_code": "87124", "coordinates": {"lat": 35.23431129126692, "lng": -106.64998272452411}}
-{"address1": "2508 Flagstone Road Northeast", "address2": "", "city": "Rio Rancho", "state": "NM", "postal_code": "87124", "coordinates": {"lat": 35.26842410024478, "lng": -106.68617125069065}}
-{"address1": "2109 Peony Court Northeast", "address2": "", "city": "Rio Rancho", "state": "NM", "postal_code": "87144", "coordinates": {"lat": 35.29421830399091, "lng": -106.618133373487}}
-{"address1": "2200 Inca Road Northeast", "address2": "", "city": "Rio Rancho", "state": "NM", "postal_code": "87144", "coordinates": {"lat": 35.289553004796005, "lng": -106.65283260717493}}
-{"address1": "4015 Zephyr Road Northeast", "address2": "", "city": "Rio Rancho", "state": "NM", "postal_code": "87144", "coordinates": {"lat": 35.32538867270739, "lng": -106.65495587984321}}
-{"address1": "4525 Baker Court Northeast", "address2": "", "city": "Rio Rancho", "state": "NM", "postal_code": "87144", "coordinates": {"lat": 35.33706793081104, "lng": -106.64454323734032}}
-{"address1": "7810 G104 Paseo 550 Drive Northeast", "address2": "", "city": "Rio Rancho", "state": "NM", "postal_code": "87144", "coordinates": {"lat": 35.3364575955336, "lng": -106.58245768941876}}
-{"address1": "105 North Pennsylvania Avenue", "address2": "", "city": "Roswell", "state": "NM", "postal_code": "88201", "coordinates": {"lat": 33.39360556608565, "lng": -104.52554644228164}}
-{"address1": "507 West 12th Street", "address2": "", "city": "Roswell", "state": "NM", "postal_code": "88201", "coordinates": {"lat": 33.405981697959746, "lng": -104.52980478198164}}
-{"address1": "704 Sherrill Lane", "address2": "", "city": "Roswell", "state": "NM", "postal_code": "88201", "coordinates": {"lat": 33.4249306618244, "lng": -104.53284453818067}}
-{"address1": "843 Agate Road", "address2": "", "city": "Roswell", "state": "NM", "postal_code": "88201", "coordinates": {"lat": 33.43979705942785, "lng": -104.51139980450017}}
-{"address1": "1910 North Heights Drive", "address2": "", "city": "Roswell", "state": "NM", "postal_code": "88203", "coordinates": {"lat": 33.367888945128, "lng": -104.53525743998068}}
-{"address1": "6321 Y O Road", "address2": "", "city": "Roswell", "state": "NM", "postal_code": "88203", "coordinates": {"lat": 33.30308644064452, "lng": -104.49688119887429}}
+{"address1": "1023 East Glorietta Drive", "address2": "106", "city": "Hobbs", "state": "NM", "postal_code": "88240", "coordinates": {"lat": 32.73226798752388, "lng": -103.12407279855621}}
+{"address1": "1223 South Selman Street", "address2": "", "city": "Hobbs", "state": "NM", "postal_code": "88240", "coordinates": {"lat": 32.68666401247134, "lng": -103.13043078632064}}
+{"address1": "1315 North Turner Street", "address2": "", "city": "Hobbs", "state": "NM", "postal_code": "88240", "coordinates": {"lat": 32.713702262361075, "lng": -103.13762937992743}}
+{"address1": "205 East Scharbauer Street", "address2": "", "city": "Hobbs", "state": "NM", "postal_code": "88240", "coordinates": {"lat": 32.70789591712653, "lng": -103.13452235257063}}
+{"address1": "513 East Sanger Street", "address2": "", "city": "Hobbs", "state": "NM", "postal_code": "88240", "coordinates": {"lat": 32.710978779167654, "lng": -103.13046653950282}}
+{"address1": "1624 West Millen Drive", "address2": "", "city": "Hobbs", "state": "NM", "postal_code": "88242", "coordinates": {"lat": 32.755097065796484, "lng": -103.15666666208192}}
+{"address1": "1628 West June Grass Road", "address2": "", "city": "Hobbs", "state": "NM", "postal_code": "88242", "coordinates": {"lat": 32.77473328933572, "lng": -103.1569603719453}}
+{"address1": "6900 North Country Road", "address2": "", "city": "Hobbs", "state": "NM", "postal_code": "88242", "coordinates": {"lat": 32.77908132137616, "lng": -103.14620721441352}}
+{"address1": "7002 North Dal Paso Street", "address2": "", "city": "Hobbs", "state": "NM", "postal_code": "88242", "coordinates": {"lat": 32.78032538882055, "lng": -103.12741313306049}}
+{"address1": "7006 North Dal Paso Street", "address2": "", "city": "Hobbs", "state": "NM", "postal_code": "88242", "coordinates": {"lat": 32.78046130819143, "lng": -103.12741503898627}}
+{"address1": "208 Southern Boulevard Southeast", "address2": "", "city": "Rio Rancho", "state": "NM", "postal_code": "87124", "coordinates": {"lat": 35.24107613916756, "lng": -106.7344016673202}}
+{"address1": "4257 Foxwood Trail Southeast", "address2": "", "city": "Rio Rancho", "state": "NM", "postal_code": "87124", "coordinates": {"lat": 35.252448385981126, "lng": -106.65762330863622}}
+{"address1": "49 6th Street Northeast", "address2": "", "city": "Rio Rancho", "state": "NM", "postal_code": "87124", "coordinates": {"lat": 35.26057877211987, "lng": -106.72532122980446}}
+{"address1": "839 Country Club Drive Southeast", "address2": "1A", "city": "Rio Rancho", "state": "NM", "postal_code": "87124", "coordinates": {"lat": 35.244415715166525, "lng": -106.67591560384177}}
+{"address1": "951 Nm Highway 528 Southeast", "address2": "", "city": "Rio Rancho", "state": "NM", "postal_code": "87124", "coordinates": {"lat": 35.24260470378035, "lng": -106.65624319020908}}
+{"address1": "2625 Camino Plata Loop Northeast", "address2": "", "city": "Rio Rancho", "state": "NM", "postal_code": "87144", "coordinates": {"lat": 35.28129423064122, "lng": -106.68012270360308}}
+{"address1": "3400 Martin Meadows Drive Northeast", "address2": "", "city": "Rio Rancho", "state": "NM", "postal_code": "87144", "coordinates": {"lat": 35.31403532719387, "lng": -106.72836657091754}}
+{"address1": "4305 Crowned Eagle Loop Northeast", "address2": "", "city": "Rio Rancho", "state": "NM", "postal_code": "87144", "coordinates": {"lat": 35.36658940257388, "lng": -106.65103570875353}}
+{"address1": "5705 Rio Oso Road Northeast", "address2": "", "city": "Rio Rancho", "state": "NM", "postal_code": "87144", "coordinates": {"lat": 35.269623669600485, "lng": -106.62106428597873}}
+{"address1": "6090 Zenith Court Northeast", "address2": "", "city": "Rio Rancho", "state": "NM", "postal_code": "87144", "coordinates": {"lat": 35.27679822070793, "lng": -106.61220167980518}}
+{"address1": "15 Concord Road", "address2": "", "city": "Roswell", "state": "NM", "postal_code": "88201", "coordinates": {"lat": 33.293689817409565, "lng": -104.48955117106728}}
+{"address1": "419 Tierra Berrenda Drive", "address2": "", "city": "Roswell", "state": "NM", "postal_code": "88201", "coordinates": {"lat": 33.44796946437609, "lng": -104.51039542553023}}
+{"address1": "5035 West Berrendo Road", "address2": "A", "city": "Roswell", "state": "NM", "postal_code": "88201", "coordinates": {"lat": 33.44004173861338, "lng": -104.6001789967112}}
+{"address1": "608 Wrangler Road", "address2": "", "city": "Roswell", "state": "NM", "postal_code": "88201", "coordinates": {"lat": 33.46693638594663, "lng": -104.45374302152145}}
+{"address1": "1610 West Juniper Street", "address2": "", "city": "Roswell", "state": "NM", "postal_code": "88203", "coordinates": {"lat": 33.39213374586855, "lng": -104.54670630620427}}
+{"address1": "3000 South Louisiana Avenue", "address2": "", "city": "Roswell", "state": "NM", "postal_code": "88203", "coordinates": {"lat": 33.357689993489856, "lng": -104.54441000781816}}
 {"address1": "119 Pierre Road", "address2": "", "city": "Roswell", "state": "NM", "postal_code": "88230", "coordinates": {"lat": 33.256228964540135, "lng": -104.55851789751111}}
 {"address1": "28 Carrol Street", "address2": "", "city": "Roswell", "state": "NM", "postal_code": "88230", "coordinates": {"lat": 33.263762886513135, "lng": -104.46006309334506}}
+{"address1": "51 Nashville Road", "address2": "", "city": "Roswell", "state": "NM", "postal_code": "88230", "coordinates": {"lat": 33.27861395014339, "lng": -104.52660656909141}}
 {"address1": "6374 Pequot Road", "address2": "", "city": "Roswell", "state": "NM", "postal_code": "88230", "coordinates": {"lat": 33.30156340424612, "lng": -104.45418685466069}}
-{"address1": "89 Stagecoach Road", "address2": "", "city": "Roswell", "state": "NM", "postal_code": "88230", "coordinates": {"lat": 33.24227140671069, "lng": -104.56099683169376}}
 {"address1": "6333 Chetti Drive", "address2": "", "city": "Columbus", "state": "OH", "postal_code": "43035", "coordinates": {"lat": 39.98711634891813, "lng": -82.83362765134152}}
 {"address1": "7853 Malton Lane", "address2": "", "city": "Columbus", "state": "OH", "postal_code": "43085", "coordinates": {"lat": 40.1254286884938, "lng": -82.9930907279767}}
 {"address1": "2015 Summit Street", "address2": "", "city": "Columbus", "state": "OH", "postal_code": "43201", "coordinates": {"lat": 40.00442398537363, "lng": -83.0010775452353}}

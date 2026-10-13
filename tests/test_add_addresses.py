@@ -555,8 +555,14 @@ class TestReadFeatures:
 class TestCapPerPostalCode:
     def candidates(self) -> list[dict[str, Any]]:
         return [
-            {"postal_code": postal_code, "address1": f"{postal_code}-{n}"}
-            for postal_code, total in (("28422", 5), ("28401", 2), ("28403", 1))
+            {
+                "state": "NC",
+                "city": "Bolivia",
+                "postal_code": postal_code,
+                "address1": f"{n} Main Street",
+                "address2": "",
+            }
+            for postal_code, total in (("28422", 10), ("28401", 2), ("28403", 1))
             for n in range(total)
         ]
 
@@ -569,16 +575,19 @@ class TestCapPerPostalCode:
             "28403": 1,
         }
 
-    def test_is_reproducible_whatever_the_source_order(self) -> None:
+    @pytest.mark.parametrize("seed", range(20))
+    def test_is_reproducible_whatever_the_source_order(self, seed: int) -> None:
+        # 28422 holds more than the cap, so sample() really has to choose. It
+        # picks by position, which is what made the source order leak through
+        # before each postal code was sorted. One seed could pass by luck; twenty
+        # cannot.
         candidates = self.candidates()
-        shuffled = list(reversed(candidates))
+        shuffled = random.Random(seed + 100).sample(candidates, len(candidates))
 
-        first = _cap_per_postal_code(candidates, 2, random.Random(7))
-        second = _cap_per_postal_code(shuffled, 2, random.Random(7))
+        first = _cap_per_postal_code(candidates, 2, random.Random(seed))
+        second = _cap_per_postal_code(shuffled, 2, random.Random(seed))
 
-        assert sorted(item["address1"] for item in first) == sorted(
-            item["address1"] for item in second
-        )
+        assert first == second
 
 
 class TestLicense:

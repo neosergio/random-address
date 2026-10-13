@@ -14,8 +14,10 @@ addresses from it.
 
 Sources may be line-delimited GeoJSON (what OpenAddresses ships), a GeoJSON
 FeatureCollection, or an OpenAddresses CSV, and any of them may be gzipped.
-Line-delimited and CSV sources are streamed, so a multi-gigabyte statewide file
-does not have to fit in memory.
+Line-delimited and CSV sources are read a record at a time, so the raw file is
+never held in memory. Every record that passes validation is still kept until
+sampling, though, so a statewide source with millions of valid records needs
+millions of records' worth of memory. ROADMAP.md has the bounded design.
 
 Records are validated before they are sampled, so a run always yields the number
 of good addresses you asked for rather than that many candidates. Anything
@@ -350,10 +352,11 @@ def _read_features(path: Path) -> Iterator[dict[str, Any]]:
     hand-edited files are often a single FeatureCollection object, so all three
     are accepted. A ``.gz`` suffix is decompressed on the fly.
 
-    Line-delimited and CSV files are streamed a record at a time. Only a
-    FeatureCollection is read whole, since it is a single JSON document. Reading
-    everything up front is what forced the Texas statewide source to be narrowed
-    by hand before 2.1.1 could import it.
+    Line-delimited and CSV files are read a record at a time. Only a
+    FeatureCollection is read whole, since it is a single JSON document. Note
+    that this bounds the memory for the raw text only: main() keeps every valid
+    record until it samples, so the records that pass validation still have to
+    fit in memory.
     """
     with _open_text(path) as handle:
         if _base_suffix(path) == ".csv":
@@ -651,8 +654,11 @@ def _cap_per_postal_code(
 ) -> list[dict[str, Any]]:
     """Keep at most ``cap`` randomly chosen candidates from each postal code.
 
-    Postal codes are visited in sorted order, so the same seed keeps the same
-    candidates however the source happens to be ordered.
+    Postal codes are visited in sorted order, and each postal code's addresses
+    are sorted before sampling, so the same seed keeps the same candidates
+    however the source happens to be ordered. Sorting only the postal codes is
+    not enough: sample() picks by position, so the same seed drew different
+    addresses from the same postal code whenever the source order changed.
     """
     by_postal_code: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for address in candidates:
@@ -660,7 +666,7 @@ def _cap_per_postal_code(
 
     kept: list[dict[str, Any]] = []
     for postal_code in sorted(by_postal_code):
-        pool = by_postal_code[postal_code]
+        pool = sorted(by_postal_code[postal_code], key=_sort_key)
         kept.extend(generator.sample(pool, min(cap, len(pool))))
     return kept
 

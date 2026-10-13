@@ -434,7 +434,8 @@ good its data.
 
 `--per-postal-code N` stops any one postal code from contributing more than `N` addresses, so a
 sample spreads across a city instead of clustering where the source is densest. Line-delimited
-and CSV sources are streamed, so a multi-gigabyte statewide file does not need narrowing first.
+and CSV sources are read a record at a time, but every valid record is kept until sampling, so a
+multi-gigabyte statewide source still needs narrowing to the cities you want first.
 
 Use `--dry-run` to preview, and `--replace-state` to re-import a state from a better source.
 

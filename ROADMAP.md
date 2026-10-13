@@ -51,9 +51,19 @@ up repeatedly:
   using them means checking each upstream publisher's terms by hand first.
 
 Texas was imported from `us/tx/statewide` (CC0) despite being 337 MB compressed and roughly 2.5 GB
-uncompressed. Since 2.2.0 `_read_features` streams line-delimited and CSV sources, gzipped or not,
-so a source that size no longer has to be narrowed by hand first. A FeatureCollection is still read
-whole, being one JSON document; prefer the line-delimited download for anything large.
+uncompressed. Since 2.2.0 `_read_features` reads line-delimited and CSV sources a record at a time,
+gzipped or not, so the raw text is no longer loaded whole. That is only half the problem: `main()`
+still keeps every record that passes validation until it samples, and in a statewide source that is
+most of them. A source that size still has to be narrowed before importing.
+
+Bounding that properly means choosing the sample while reading. Reservoir sampling would do it, but
+it depends on the order records arrive in, which would undo the guarantee that a seed gives the same
+sample whatever the source order. An order-independent alternative is bottom-k sampling: hash each
+record's duplicate key together with the seed, and keep the `k` smallest hashes per postal code (for
+`--per-postal-code`) and per city (for `--cities`, where `k` is `--count`, since no city's quota can
+exceed it). Memory is then bounded by the number of postal codes and cities, not records. The open
+question is the Duplicates line of the summary: a repeat of a record that was already evicted can no
+longer be recognized as a repeat, so that count would become a lower bound.
 
 ## Considered and declined
 
