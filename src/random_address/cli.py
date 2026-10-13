@@ -13,8 +13,10 @@ from . import __version__
 from .core import (
     NoMatchingAddressError,
     city_counts,
+    count,
     postal_code_counts,
     real_random_addresses,
+    real_random_cluster,
     state_counts,
     summary,
 )
@@ -60,9 +62,7 @@ def _build_parser() -> argparse.ArgumentParser:
             "together match addresses satisfying both."
         ),
     )
-    get.add_argument("--state", help="Two-letter state code, for example CA.")
-    get.add_argument("--city", help="City name, for example Newark.")
-    get.add_argument("--postal-code", dest="postal_code", help="Postal code, for example 94560.")
+    _add_filters(get)
     get.add_argument("-n", "--count", type=int, default=1, help="How many addresses to return.")
     get.add_argument(
         "--seed",
@@ -100,6 +100,46 @@ def _build_parser() -> argparse.ArgumentParser:
         )
         listing.set_defaults(handler=_make_listing_handler(counts))
 
+    counting = subparsers.add_parser(
+        "count",
+        help="Count the addresses matching the filters.",
+        description=(
+            "Count the addresses matching the filters, without drawing one. Prints 0, "
+            "and exits successfully, when nothing matches."
+        ),
+    )
+    _add_filters(counting)
+    counting.set_defaults(handler=_handle_count)
+
+    cluster = subparsers.add_parser(
+        "cluster",
+        help="Retrieve a group of addresses that lie close together.",
+        description=(
+            "Retrieve a group of addresses that all lie within --within-km of one of "
+            "them, chosen at random. To group addresses around a point of your own, "
+            "use the default command with --near instead."
+        ),
+    )
+    _add_filters(cluster, radius=False)
+    cluster.add_argument(
+        "--within-km",
+        dest="within_km",
+        type=float,
+        metavar="KM",
+        required=True,
+        help="Radius of the group around its centre, in kilometres.",
+    )
+    cluster.add_argument("-n", "--count", type=int, default=5, help="Group size. Defaults to 5.")
+    cluster.add_argument("--seed", help="Seed for reproducible output.")
+    cluster.add_argument(
+        "-f",
+        "--format",
+        choices=("text", "json", "csv"),
+        default="text",
+        help="Output format. json always emits an array. Defaults to text.",
+    )
+    cluster.set_defaults(handler=_handle_cluster)
+
     stats = subparsers.add_parser(
         "summary",
         help="Show dataset-wide statistics.",
@@ -115,6 +155,45 @@ def _build_parser() -> argparse.ArgumentParser:
     stats.set_defaults(handler=_handle_summary)
 
     return parser
+
+
+def _add_filters(parser: argparse.ArgumentParser, *, radius: bool = True) -> None:
+    """Add the filters shared by the commands, so they cannot drift apart.
+
+    ``cluster`` takes the attribute filters only: its radius is its own, and a
+    ``--near`` there would be a second, competing centre.
+    """
+    parser.add_argument("--state", help="Two-letter state code, for example CA.")
+    parser.add_argument("--city", help="City name, for example Newark.")
+    parser.add_argument("--postal-code", dest="postal_code", help="Postal code, for example 94560.")
+    if not radius:
+        return
+    parser.add_argument(
+        "--near",
+        type=_lat_lng,
+        metavar="LAT,LNG",
+        help="Point to search around, for example 38.88,-77.10. Needs --within-km.",
+    )
+    parser.add_argument(
+        "--within-km",
+        dest="within_km",
+        type=float,
+        metavar="KM",
+        help="Keep only addresses within this many kilometres of --near.",
+    )
+
+
+def _lat_lng(value: str) -> tuple[float, float]:
+    """Parse ``LAT,LNG``. Range checks are left to the library, so both agree."""
+    lat, separator, lng = value.partition(",")
+    try:
+        if not separator:
+            raise ValueError
+        return float(lat), float(lng)
+    except ValueError:
+        raise argparse.ArgumentTypeError(
+            f"expected LAT,LNG, for example 38.88,-77.10, got {value!r}"
+        ) from None
 
 
 def _with_default_command(argv: Sequence[str]) -> list[str]:
@@ -133,14 +212,20 @@ def _handle_get(args: argparse.Namespace) -> str:
         state=args.state,
         city=args.city,
         postal_code=args.postal_code,
+        near=args.near,
+        within_km=args.within_km,
         seed=args.seed,
         unique=not args.repeat,
     )
 
-    if args.format == "json":
-        payload = addresses[0] if args.count == 1 else addresses
-        return json.dumps(payload, indent=2)
-    if args.format == "csv":
+    return _render(addresses, args.format, single=args.count == 1)
+
+
+def _render(addresses: list[Address], output_format: str, *, single: bool) -> str:
+    """Format addresses for output. ``single`` emits one JSON object, not an array."""
+    if output_format == "json":
+        return json.dumps(addresses[0] if single else addresses, indent=2)
+    if output_format == "csv":
         return _to_csv(addresses)
     return "\n".join(_to_text(address) for address in addresses)
 
@@ -156,6 +241,30 @@ def _make_listing_handler(
         return "\n".join(f"{value:<{width}}  {count}" for value, count in values.items())
 
     return handler
+
+
+def _handle_cluster(args: argparse.Namespace) -> str:
+    addresses = real_random_cluster(
+        args.count,
+        within_km=args.within_km,
+        state=args.state,
+        city=args.city,
+        postal_code=args.postal_code,
+        seed=args.seed,
+    )
+    return _render(addresses, args.format, single=False)
+
+
+def _handle_count(args: argparse.Namespace) -> str:
+    return str(
+        count(
+            state=args.state,
+            city=args.city,
+            postal_code=args.postal_code,
+            near=args.near,
+            within_km=args.within_km,
+        )
+    )
 
 
 def _handle_summary(args: argparse.Namespace) -> str:

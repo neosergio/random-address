@@ -9,8 +9,10 @@ code, some no city.
 from __future__ import annotations
 
 import argparse
+import gzip
 import json
 import random
+import re
 from collections import Counter
 from pathlib import Path
 from typing import Any
@@ -19,8 +21,10 @@ import pytest
 from add_addresses import (
     _allocate,
     _balanced_sample,
+    _cap_per_postal_code,
     _convert,
     _key,
+    _read_features,
     _report_summary,
     main,
     normalize_street,
@@ -122,6 +126,19 @@ class TestNormalizeStreet:
             # Here the leading letter really is a direction: a name follows it.
             ("N Main Street", "North Main Street"),
             ("SE 4th Avenue", "Southeast 4th Avenue"),
+            # The name after the directional is itself a suffix word (Meadow is
+            # the expansion of MDW, Garden of GDN), but the suffix is the last
+            # token. Two Oregon records shipped as "Se Meadow Court" in 2.1.1.
+            ("SE MEADOW CT", "Southeast Meadow Court"),
+            ("SW GARDEN PL", "Southwest Garden Place"),
+            ("Southeast Meadow Court", "Southeast Meadow Court"),
+            # The DC lettered streets, raw and already normalized: the trailing
+            # directional must not be mistaken for the suffix in either form.
+            ("S ST NW", "S Street Northwest"),
+            ("N ST SE", "N Street Southeast"),
+            ("E Street Southwest", "E Street Southwest"),
+            # A name in the suffix position that is not a suffix: still a name.
+            ("N BROADWAY NE", "North Broadway Northeast"),
         ],
     )
     def test_only_expands_a_leading_directional_when_a_street_name_follows(
@@ -353,7 +370,18 @@ class TestMain:
         # which reads as an unusable source rather than a mistyped --cities.
         source = self.source(tmp_path, "BOLIVIA", "BOLIVIA", "SHALLOTTE")
 
-        code = main([str(source), "--state", "NC", "--cities", "Charlotte", "--dry-run"])
+        code = main(
+            [
+                str(source),
+                "--state",
+                "NC",
+                "--license",
+                "public-domain",
+                "--cities",
+                "Charlotte",
+                "--dry-run",
+            ]
+        )
 
         captured = capsys.readouterr()
         assert code == 1
@@ -369,7 +397,18 @@ class TestMain:
     ) -> None:
         source = self.source(tmp_path, "BOLIVIA", "BOLIVIA", "BOLIVIA")
 
-        code = main([str(source), "--state", "NC", "--count", "2", "--dry-run"])
+        code = main(
+            [
+                str(source),
+                "--state",
+                "NC",
+                "--license",
+                "public-domain",
+                "--count",
+                "2",
+                "--dry-run",
+            ]
+        )
 
         printed = capsys.readouterr().out
         assert code == 0
@@ -383,7 +422,7 @@ class TestMain:
         source = tmp_path / "empty.geojson"
         source.write_text("", encoding="utf-8")
 
-        code = main([str(source), "--state", "NC", "--dry-run"])
+        code = main([str(source), "--state", "NC", "--license", "public-domain", "--dry-run"])
 
         captured = capsys.readouterr()
         assert code == 1
@@ -452,3 +491,145 @@ class TestBalancedSample:
         candidates = self.addresses("Charlotte", 50)
 
         assert _balanced_sample(candidates, ["Fresno"], 10, random.Random(1)) == []
+
+
+class TestReadFeatures:
+    """Every accepted format must reach _convert as the same feature."""
+
+    CSV = (
+        "LON,LAT,NUMBER,STREET,UNIT,CITY,DISTRICT,REGION,POSTCODE,ID,HASH\n"
+        "-78.4,33.9,212,HERON CT SW,,BOLIVIA,,NC,28422,,abc\n"
+    )
+
+    def converted(self, path: Path) -> list[dict[str, Any] | None]:
+        return [_convert(item, options())[0] for item in _read_features(path)]
+
+    def test_line_delimited_geojson(self, tmp_path: Path) -> None:
+        path = tmp_path / "source.geojson"
+        path.write_text(json.dumps(feature()) + "\n\n" + json.dumps(feature()), encoding="utf-8")
+
+        assert len(self.converted(path)) == 2
+
+    def test_pretty_printed_feature_collection(self, tmp_path: Path) -> None:
+        path = tmp_path / "source.geojson"
+        path.write_text(json.dumps({"features": [feature()]}, indent=2), encoding="utf-8")
+
+        assert len(self.converted(path)) == 1
+
+    def test_single_line_feature_collection(self, tmp_path: Path) -> None:
+        path = tmp_path / "source.geojson"
+        path.write_text(json.dumps({"features": [feature(), feature()]}), encoding="utf-8")
+
+        assert len(self.converted(path)) == 2
+
+    def test_openaddresses_csv_matches_geojson(self, tmp_path: Path) -> None:
+        path = tmp_path / "source.csv"
+        path.write_text(self.CSV, encoding="utf-8")
+
+        assert self.converted(path) == [_convert(feature(region="NC"), options())[0]]
+
+    @pytest.mark.parametrize("name", ["source.csv.gz", "source.geojson.gz"])
+    def test_gzipped_sources(self, tmp_path: Path, name: str) -> None:
+        text = self.CSV if ".csv" in name else json.dumps(feature())
+        path = tmp_path / name
+        with gzip.open(path, "wt", encoding="utf-8") as handle:
+            handle.write(text)
+
+        converted = self.converted(path)
+
+        assert len(converted) == 1
+        assert converted[0] is not None
+
+    def test_line_delimited_sources_are_streamed(self, tmp_path: Path) -> None:
+        # A corrupt line after the first is only reached when it is read, so
+        # the first feature arriving first proves nothing parsed the whole file.
+        path = tmp_path / "source.geojson"
+        path.write_text(json.dumps(feature()) + "\nnot json\n", encoding="utf-8")
+        features = _read_features(path)
+
+        assert next(features)["properties"]["number"] == "212"
+        with pytest.raises(json.JSONDecodeError):
+            next(features)
+
+
+class TestCapPerPostalCode:
+    def candidates(self) -> list[dict[str, Any]]:
+        return [
+            {
+                "state": "NC",
+                "city": "Bolivia",
+                "postal_code": postal_code,
+                "address1": f"{n} Main Street",
+                "address2": "",
+            }
+            for postal_code, total in (("28422", 10), ("28401", 2), ("28403", 1))
+            for n in range(total)
+        ]
+
+    def test_no_postal_code_exceeds_the_cap(self) -> None:
+        kept = _cap_per_postal_code(self.candidates(), 2, random.Random(1))
+
+        assert Counter(item["postal_code"] for item in kept) == {
+            "28422": 2,
+            "28401": 2,
+            "28403": 1,
+        }
+
+    @pytest.mark.parametrize("seed", range(20))
+    def test_is_reproducible_whatever_the_source_order(self, seed: int) -> None:
+        # 28422 holds more than the cap, so sample() really has to choose. It
+        # picks by position, which is what made the source order leak through
+        # before each postal code was sorted. One seed could pass by luck; twenty
+        # cannot.
+        candidates = self.candidates()
+        shuffled = random.Random(seed + 100).sample(candidates, len(candidates))
+
+        first = _cap_per_postal_code(candidates, 2, random.Random(seed))
+        second = _cap_per_postal_code(shuffled, 2, random.Random(seed))
+
+        assert first == second
+
+
+class TestLicense:
+    def test_is_required(self, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+        with pytest.raises(SystemExit):
+            main([str(tmp_path / "source.geojson"), "--state", "NC"])
+
+        assert "--license" in capsys.readouterr().err
+
+    @pytest.mark.parametrize("license_", ["CC-BY-4.0", "ODbL-1.0", "unknown"])
+    def test_rejects_anything_but_public_domain(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture[str], license_: str
+    ) -> None:
+        with pytest.raises(SystemExit):
+            main([str(tmp_path / "source.geojson"), "--state", "NC", "--license", license_])
+
+        assert "invalid choice" in capsys.readouterr().err
+
+
+class TestPerPostalCodeSummary:
+    def test_the_tally_still_counts_records_the_cap_set_aside(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        # Four valid records in one postal code, capped to one. The cap narrows
+        # what can be sampled; it does not make the other three invalid, and the
+        # tally has to keep adding up to the records read.
+        path = tmp_path / "source.geojson"
+        path.write_text(
+            "\n".join(json.dumps(feature(number=str(100 + n))) for n in range(4)),
+            encoding="utf-8",
+        )
+
+        code = main(
+            [
+                str(path),
+                *("--state", "NC", "--license", "public-domain", "--count", "1"),
+                *("--per-postal-code", "1", "--dry-run"),
+            ]
+        )
+
+        printed = capsys.readouterr().out
+        assert code == 0
+        assert "Capped at 1 per postal code: 1 of 4" in printed
+        assert re.search(r"^Valid\s+4\s", printed, re.MULTILINE)
+        assert re.search(r"^Selected\s+1\s", printed, re.MULTILINE)

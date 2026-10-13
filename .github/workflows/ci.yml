@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 # A second push supersedes the first. Without this, every push runs the whole
-# five-version matrix again alongside the run it just obsoleted.
+# whole version matrix again alongside the run it just obsoleted.
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
@@ -35,13 +35,32 @@ jobs:
       # type hints. Nothing but this step holds us to that promise.
       - run: mypy
 
+  # A second type checker, for a second opinion. mypy in the lint job is the
+  # gate; this job never blocks a merge, it only shows where pyrefly disagrees,
+  # so a user on pyrefly hears about a problem with the shipped types from us
+  # first. Pinned, so a pyrefly release cannot change the result on its own.
+  pyrefly:
+    name: Type check with pyrefly (informational)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - run: pip install -e ".[dev]" "pyrefly==1.3.2"
+      - run: pyrefly check
+
   test:
     name: Test (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+        python-version: ["3.11", "3.12", "3.13", "3.14", "3.15"]
     steps:
       - uses: actions/checkout@v4
         with:

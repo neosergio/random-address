@@ -15,14 +15,16 @@ from .core import (
     postal_code_counts,
     real_random_address,
     real_random_addresses,
+    real_random_cluster,
     state_counts,
     summary,
 )
-from .types import Address, Coordinates, Seed, Summary
+from .types import Address, Coordinates, Location, Seed, Summary
 
 __all__ = [
     "Address",
     "Coordinates",
+    "Location",
     "NoMatchingAddressError",
     "Seed",
     "Summary",
@@ -34,8 +36,9 @@ __all__ = [
     "postal_code_counts",
     "real_random_address",
     "real_random_addresses",
+    "real_random_cluster",
     "state_counts",
     "summary",
 ]
 
-__version__ = "2.1.1"
+__version__ = "2.2.0"

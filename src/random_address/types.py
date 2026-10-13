@@ -26,6 +26,10 @@ class Address(TypedDict):
     coordinates: Coordinates
 
 
+Location: TypeAlias = Coordinates | Address | tuple[float, float]
+"""A point to search around: ``(lat, lng)``, a :class:`Coordinates`, or an :class:`Address`."""
+
+
 class Summary(TypedDict):
     """Dataset-wide statistics."""
 

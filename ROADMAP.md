@@ -8,18 +8,32 @@ Requests for specific cities, states or postal codes do not belong here. Those g
 [GitHub Issues](https://github.com/neosergio/random-address/issues), which is the workflow the README
 describes, and they are added gradually to keep the package small.
 
-## A `count` subcommand for the CLI
-
-`count()` landed in 2.1.1 as a Python function only. The CLI already has a `summary` subcommand, so
-`random-address count --state CA` is the obvious companion, and the argument parsing for `--state`,
-`--city` and `--postal-code` already exists on the `get` subcommand.
-
-Deferred because 2.1.1 was a patch release. Growing the command line surface changes what the tool
-looks like to somebody reading `--help`, which is a minor-release decision rather than a patch one.
-
 ## Broader geographic coverage
 
-The dataset holds 20 states after 2.1.1. Thirty-one are still unrepresented: DE HI IA ID IL IN KS LA
+The dataset holds 29 states as of 2.2.0; COVERAGE.md has the current list. Twenty-two are still
+unrepresented: DE HI IA KS ME MI MO MS MT ND NE NH NJ NV NY RI SD UT WA WI WV WY.
+
+For 2.2.0 every OpenAddresses source in the thirty-one states missing after 2.1.1 was checked
+against the publisher's own terms. Nine states turned up a public domain source, several of them
+only on the publisher's portal and not in the copy OpenAddresses points at. The closest misses, each
+of which says "no restrictions" or "citation not required" without dedicating the data to the
+public domain, and so would need the publisher to confirm in writing:
+
+- **New Jersey** statewide (NJOGIS NG911): free to copy under the state's legal statement, with
+  acknowledgement requested, but it includes county-supplied points.
+- **Maine** statewide E911: "No restrictions".
+- **Wisconsin** statewide parcels: "free for public consumption".
+- **Indiana** statewide and **Ohio** statewide (LBRS): permissive, but not a dedication. Both
+  states are covered anyway, from Bloomington and Columbus.
+- **New York City** AddressPoint and **Seattle**: the cities' open data laws waive restrictions but
+  let the city require redistributors to name the source.
+- **Iowa** counties, **Detroit** and **Chelan County, WA**: only OpenAddresses calls these public
+  domain; the publishers say nothing.
+
+Providence, RI is public domain (PDDL) but was left out: it is 2015 parcel data whose records carry
+owner names. New Orleans is CC0 but has no postal codes.
+
+The states that were missing after 2.1.1, for the record: DE HI IA ID IL IN KS LA
 ME MI MN MO MS MT ND NE NH NJ NM NV NY OH PA RI SC SD UT WA WI WV WY.
 
 This is gated on licensing, not on effort. Every address here is public domain, which is the one
@@ -37,52 +51,52 @@ up repeatedly:
   using them means checking each upstream publisher's terms by hand first.
 
 Texas was imported from `us/tx/statewide` (CC0) despite being 337 MB compressed and roughly 2.5 GB
-uncompressed. `_read_features` reads a source fully into memory, so that file had to be narrowed to
-the target cities by streaming before the ingest script could touch it. Any future statewide source
-of that size needs the same treatment, or `_read_features` needs to stream.
+uncompressed. Since 2.2.0 `_read_features` reads line-delimited and CSV sources a record at a time,
+gzipped or not, so the raw text is no longer loaded whole. That is only half the problem: `main()`
+still keeps every record that passes validation until it samples, and in a statewide source that is
+most of them. A source that size still has to be narrowed before importing.
 
-## Unifying the two version declarations
+Bounding that properly means choosing the sample while reading. Reservoir sampling would do it, but
+it depends on the order records arrive in, which would undo the guarantee that a seed gives the same
+sample whatever the source order. An order-independent alternative is bottom-k sampling: hash each
+record's duplicate key together with the seed, and keep the `k` smallest hashes per postal code (for
+`--per-postal-code`) and per city (for `--cities`, where `k` is `--count`, since no city's quota can
+exceed it). Memory is then bounded by the number of postal codes and cities, not records. The open
+question is the Duplicates line of the summary: a repeat of a record that was already evicted can no
+longer be recognized as a repeat, so that count would become a lower bound.
 
-The version is written twice, in `pyproject.toml` and in `src/random_address/__init__.py`. The
-duplication is intentional and guarded: `publish.yml` fails a release unless the git tag, the
-pyproject version and `__version__` all agree.
+## Considered and declined
 
-Collapsing it — setuptools `dynamic = ["version"]` reading `random_address.__version__` — means
-rewriting that guard, since two of the three values it compares would become the same value and the
-check would weaken. Worth doing, but not inside a patch release.
+Ideas that come up, have been weighed, and were turned down on purpose. Recorded so that the
+reasoning is not re-derived each time, and so that a change of circumstances that would reopen one
+is easy to spot.
 
-## Attribution lists Hawaii, but there are no Hawaii addresses
+### A dataset of a million addresses
 
-The README credits *City of Honolulu (HI)* under Attribution, and the dataset contains no HI records.
-Most likely a leftover: 2.1.0 removed twenty records that had no city, and earlier releases removed
-others.
+Every state and most postal codes could be covered tomorrow by importing Overture Maps or similar
+aggregates wholesale. Those aggregates mix licenses record by record, attribution-required and
+share-alike among them, so doing that would end the one promise this library makes. Coverage grows
+only from sources checked to be public domain; `--license` in the ingest script exists to make that
+check impossible to skip.
 
-Left alone deliberately. Editing an attribution list is a statement about provenance, and it should
-be corrected by someone who knows whether those records were removed or never shipped — not silently,
-as a side effect of an unrelated release.
+### Storing the dataset in SQLite
 
-## The leading-directional rule misfires on suffix-shaped street names
+SQLite earns its place at around a million records, where parsing JSON at import is too slow. At a
+few thousand, parsing takes milliseconds, and JSON Lines is what makes a data contribution a
+reviewable diff; a binary database would make every data pull request unreviewable. Worth revisiting
+if the dataset passes about 100,000 records, or if the opt-in performance tests start failing.
 
-`normalize_street` leaves a leading directional unexpanded when the next token is a word that also
-appears as a spelled-out street suffix. `SE MEADOW CT` normalized to `Se Meadow Court` rather than
-`Southeast Meadow Court`, because `Meadow` is the expansion of `MDW`; `SW GARDEN PL` failed the same
-way through `GDN`. Two Oregon records shipped like that in 2.1.1 and were corrected by hand. The next
-import from a source that abbreviates directionals will reintroduce it.
+### Falling back to looser filters when there are too few matches
 
-The guard exists for a real reason — Washington DC has streets named after letters, so `S ST NW` must
-stay `S Street Northwest` — and it is not safe to simply drop. Replacing the word test with a
-position test (`suffix_at != 1`) looks right and is wrong: on the already-normalized `S Street
-Northwest` the trailing `Northwest` is no longer recognized as a directional, so the suffix position
-shifts and the rule corrupts three DC records into `South Street Northwest`. Any fix has to treat
-spelled-out directionals as directionals when locating the suffix, and has to be checked against both
-the raw and the already-normalized form of the same address.
+That is, answering `real_random_addresses(100, city='X', postal_code='Y')` with addresses from the
+same city or the same postal code once the exact matches run out. It returns addresses that do not
+satisfy the filters the caller asked for, which is the silent failure 2.0.0 removed by raising
+`NoMatchingAddressError`. `count()` answers "how many are there?" up front, and the caller can widen
+the filters knowingly.
 
-## A stale comment in the ingest script
+### Bringing back the 1.x function names
 
-`ROUTE_PREFIXES` and the docstring of `_preserved` in `data/add_addresses.py` both refer to a
-`_is_dotted_initialism` helper that does not exist. Dotted forms such as `U.S. 5` are actually handled
-by the `character in ".&"` check inside `_preserved`.
-
-Purely cosmetic, and it touches the normalizer, which is the single most delicate part of the ingest
-path — the 2.1.0 changelog lists six separate street names it had corrupted. A comment fix is not
-worth re-opening that file during a release focused on something else.
+`real_random_address_by_state()` and the rest were replaced in 2.0.0, deliberately, along with
+`postalCode` and the empty-dict return. Re-adding them as aliases would mean two spellings of every
+call, one of which returns a different key and fails silently. "Upgrading from 1.x" in the README
+maps each old name to its replacement.

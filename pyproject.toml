@@ -5,10 +5,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "random-address"
-version = "2.1.1"
+# The version lives in src/random_address/__init__.py alone; see
+# [tool.setuptools.dynamic] below. publish.yml checks the release tag against
+# the version the built wheel actually carries.
+dynamic = ["version"]
 description = "Retrieve real random US addresses, with coordinates, for tests and fixtures"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = "MIT"
 
 authors = [
@@ -32,11 +35,11 @@ classifiers = [
     "Operating System :: OS Independent",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: Software Development :: Testing",
     "Topic :: Utilities",
@@ -67,6 +70,10 @@ Issues = "https://github.com/neosergio/random-address/issues"
 Changelog = "https://github.com/neosergio/random-address/blob/main/CHANGELOG.md"
 
 
+[tool.setuptools.dynamic]
+version = { attr = "random_address.__version__" }
+
+
 [tool.setuptools.packages.find]
 where = ["src"]
 
@@ -86,8 +93,8 @@ addopts = [
 ]
 # The package has no runtime dependencies, so every warning raised during a test
 # run comes from this code or from the standard library deprecating something out
-# from under it. A DeprecationWarning here is the 3.14 job failing early, quietly,
-# where nobody reads it; make it fail loudly instead.
+# from under it. A DeprecationWarning here is the newest-Python job failing early,
+# quietly, where nobody reads it; make it fail loudly instead.
 filterwarnings = ["error"]
 
 
@@ -109,9 +116,18 @@ select = [
 
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.11"
 files = ["src", "tests", "data"]
 # data/ holds the maintainer ingest script, which the dataset tests import.
 # pytest finds it through pythonpath above; mypy needs telling separately.
 mypy_path = "data"
 strict = true
+
+
+# A second opinion, run in CI without blocking a merge; mypy above is the gate.
+# Kept to the same files and Python version as mypy, so the two disagree only
+# where the checkers themselves do.
+[tool.pyrefly]
+project-includes = ["src", "tests", "data"]
+search-path = ["src", "data", "."]
+python-version = "3.11"

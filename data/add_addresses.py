@@ -1,15 +1,23 @@
-"""Add addresses to the bundled dataset from an OpenAddresses GeoJSON file.
+"""Add addresses to the bundled dataset from an OpenAddresses source file.
 
 This is a maintainer tool, not part of the published package. It exists to serve
 the workflow in the README: somebody opens an issue asking for a city, you
-download the matching GeoJSON from OpenAddresses, and you sample a handful of
+download the matching source from OpenAddresses, and you sample a handful of
 addresses from it.
 
-    python data/add_addresses.py arlington.geojson --state VA --city Arlington
-    python data/add_addresses.py boise.geojson --state ID --count 50 --seed 7
-    python data/add_addresses.py vermont.geojson --state VT --replace-state
-    python data/add_addresses.py nc.geojson --state NC --count 50 \
-        --cities "Charlotte,Raleigh,Durham,Asheville,Wilmington"
+    python data/add_addresses.py arlington.geojson --state VA --license public-domain \
+        --city Arlington
+    python data/add_addresses.py tx.geojson.gz --state TX --license CC0-1.0 --count 50 --seed 7
+    python data/add_addresses.py vermont.csv --state VT --license public-domain --replace-state
+    python data/add_addresses.py nc.geojson --state NC --license public-domain --count 50 \
+        --cities "Charlotte,Raleigh,Durham,Asheville,Wilmington" --per-postal-code 3
+
+Sources may be line-delimited GeoJSON (what OpenAddresses ships), a GeoJSON
+FeatureCollection, or an OpenAddresses CSV, and any of them may be gzipped.
+Line-delimited and CSV sources are read a record at a time, so the raw file is
+never held in memory. Every record that passes validation is still kept until
+sampling, though, so a statewide source with millions of valid records needs
+millions of records' worth of memory. ROADMAP.md has the bounded design.
 
 Records are validated before they are sampled, so a run always yields the number
 of good addresses you asked for rather than that many candidates. Anything
@@ -19,12 +27,14 @@ rejected is reported by reason.
 from __future__ import annotations
 
 import argparse
+import csv
+import gzip
 import json
 import random
 import re
 import sys
 from collections import Counter, defaultdict
-from collections.abc import Iterator, Sequence
+from collections.abc import Iterable, Iterator, Sequence
 from pathlib import Path
 from typing import Any, TypeGuard
 
@@ -40,6 +50,23 @@ MIN_LAT, MAX_LAT = 17.0, 72.0
 MIN_LNG, MAX_LNG = -180.0, -64.0
 
 DEFAULT_COUNT = 50
+
+# The one promise the dataset makes is that every address in it is public domain.
+# A source that requires attribution or share-alike cannot be shipped however
+# good its data is, and neither can one with no stated license: unknown is not
+# public domain. --license has no default, so stating it is never skipped.
+LICENSES = ("CC0-1.0", "PDDL-1.0", "public-domain")
+
+# OpenAddresses CSV columns, mapped onto the GeoJSON property names that
+# _convert reads, so both formats go through exactly the same validation.
+CSV_PROPERTIES = {
+    "NUMBER": "number",
+    "STREET": "street",
+    "UNIT": "unit",
+    "CITY": "city",
+    "REGION": "region",
+    "POSTCODE": "postcode",
+}
 
 # Many OpenAddresses sources publish ALL CAPS, abbreviated data ("212 HERON CT
 # SW", "BOLIVIA"), and the dataset is written out title-cased and spelled out
@@ -104,12 +131,18 @@ STREET_SUFFIXES = {
 }
 
 # Route designators stay upper-cased: "US 17", "NC 211", "SR 1105". Dotted forms
-# such as "U.S. 5" are handled by _is_dotted_initialism rather than listed here.
+# such as "U.S. 5" are not listed here: _preserved keeps any all-caps token that
+# carries a dot or an ampersand.
 ROUTE_PREFIXES = {"US", "NC", "SR", "CR", "FM", "I", "SC", "TH"}
 
 # Suffixes in both their abbreviated and spelled-out forms, used to tell a
 # directional apart from a street actually named after a letter.
 SUFFIX_WORDS = {suffix.upper() for suffix in STREET_SUFFIXES.values()} | set(STREET_SUFFIXES)
+
+# Directionals in both forms. A trailing "Northwest" has to be recognized as a
+# directional when locating the suffix, or an already-normalized "S Street
+# Northwest" would look as though its suffix were "Northwest".
+DIRECTIONAL_WORDS = {word.upper() for word in DIRECTIONALS.values()} | set(DIRECTIONALS)
 
 # "William E Summers III Avenue" is a real address. Single letters are left out:
 # I, V, X and C are far more often initials or street names than numerals.
@@ -154,7 +187,17 @@ def main(argv: list[str] | None = None) -> int:
         _explain_wholesale_rejection(rejected)
         return 1
 
+    # The summary accounts for every record read, so it reports the valid count
+    # from before any cap; the cap only narrows what is available to sample.
+    valid = len(candidates)
     generator = random.Random(args.seed)
+    if args.per_postal_code:
+        candidates = _cap_per_postal_code(candidates, args.per_postal_code, generator)
+        print(
+            f"Capped at {args.per_postal_code} per postal code: {len(candidates)} of "
+            f"{valid} valid records remain available to sample"
+        )
+
     if args.cities:
         selected = _balanced_sample(candidates, args.cities, args.count, generator)
     else:
@@ -169,7 +212,7 @@ def main(argv: list[str] | None = None) -> int:
         # how much the source held, which is what tells a bad --cities apart
         # from a bad source.
         print("No usable addresses found.", file=sys.stderr)
-        _report_summary(read, len(candidates), duplicates, rejected, 0, len(existing))
+        _report_summary(read, valid, duplicates, rejected, 0, len(existing))
         return 1
 
     print(f"Selected {len(selected)} addresses for {args.state}")
@@ -177,7 +220,7 @@ def main(argv: list[str] | None = None) -> int:
     print()
     _report_summary(
         read,
-        len(candidates),
+        valid,
         duplicates,
         rejected,
         len(selected),
@@ -199,7 +242,7 @@ def main(argv: list[str] | None = None) -> int:
     _write_dataset(merged)
 
     print(f"\nWrote {len(merged)} addresses to {_display_path(DATASET)}")
-    print("Remember to credit the source under Attribution in README.md.")
+    print(f"Remember to credit the source ({args.license}) under Attribution in README.md.")
     return 0
 
 
@@ -221,7 +264,18 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument("source", type=Path, help="OpenAddresses GeoJSON file.")
+    parser.add_argument(
+        "source",
+        type=Path,
+        help="OpenAddresses source: GeoJSON, line-delimited GeoJSON or CSV, optionally gzipped.",
+    )
+    parser.add_argument(
+        "--license",
+        required=True,
+        choices=LICENSES,
+        help="The source's license, as checked with its publisher. Only public domain "
+        "sources can be added; attribution, share-alike and unlicensed sources cannot.",
+    )
     parser.add_argument(
         "--state",
         required=True,
@@ -254,6 +308,14 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
         '"Charlotte,Raleigh,Chapel Hill". The count is split evenly between them. '
         "Without this, the sample is drawn from the whole file.",
     )
+    parser.add_argument(
+        "--per-postal-code",
+        type=int,
+        dest="per_postal_code",
+        metavar="N",
+        help="Let no postal code contribute more than N addresses, so the sample "
+        "spreads across a city instead of clustering where the source is densest.",
+    )
     parser.add_argument("--seed", help="Seed, so a sample can be reproduced.")
     parser.add_argument(
         "--allow-missing-city",
@@ -278,23 +340,47 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
         parser.error("--state must be a two-letter code, for example VA")
     if args.count < 1:
         parser.error("--count must be at least 1")
+    if args.per_postal_code is not None and args.per_postal_code < 1:
+        parser.error("--per-postal-code must be at least 1")
     return args
 
 
 def _read_features(path: Path) -> Iterator[dict[str, Any]]:
-    """Yield features from either a line-delimited or a FeatureCollection file.
+    """Yield features from a line-delimited GeoJSON, FeatureCollection or CSV file.
 
-    OpenAddresses ships line-delimited GeoJSON, but exports and hand-edited files
-    are often a single FeatureCollection object, so both are accepted.
+    OpenAddresses ships line-delimited GeoJSON and CSV, but exports and
+    hand-edited files are often a single FeatureCollection object, so all three
+    are accepted. A ``.gz`` suffix is decompressed on the fly.
+
+    Line-delimited and CSV files are read a record at a time. Only a
+    FeatureCollection is read whole, since it is a single JSON document. Note
+    that this bounds the memory for the raw text only: main() keeps every valid
+    record until it samples, so the records that pass validation still have to
+    fit in memory.
     """
-    text = path.read_text(encoding="utf-8")
-    try:
-        payload = json.loads(text)
-    except json.JSONDecodeError:
-        for line in text.splitlines():
-            if line.strip():
-                yield json.loads(line)
-        return
+    with _open_text(path) as handle:
+        if _base_suffix(path) == ".csv":
+            yield from _features_from_csv(handle)
+            return
+
+        first = next((line for line in handle if line.strip()), "")
+        if not first:
+            return
+        try:
+            record = json.loads(first)
+        except json.JSONDecodeError:
+            record = None
+
+        # A first line that is a complete object, and not a whole collection,
+        # is the first feature of a line-delimited file.
+        if isinstance(record, dict) and "features" not in record:
+            yield record
+            for line in handle:
+                if line.strip():
+                    yield json.loads(line)
+            return
+
+        payload = json.loads(first + handle.read())
 
     if isinstance(payload, dict) and "features" in payload:
         yield from payload["features"]
@@ -302,6 +388,29 @@ def _read_features(path: Path) -> Iterator[dict[str, Any]]:
         yield from payload
     else:
         yield payload
+
+
+def _open_text(path: Path) -> Any:
+    if path.suffix == ".gz":
+        return gzip.open(path, "rt", encoding="utf-8", newline="")
+    return path.open(encoding="utf-8", newline="")
+
+
+def _base_suffix(path: Path) -> str:
+    """Return the suffix that names the format, looking past a ``.gz``."""
+    return Path(path.stem).suffix.lower() if path.suffix == ".gz" else path.suffix.lower()
+
+
+def _features_from_csv(rows: Iterable[str]) -> Iterator[dict[str, Any]]:
+    """Reshape OpenAddresses CSV rows into the GeoJSON features _convert reads."""
+    for row in csv.DictReader(rows):
+        columns = {str(key).strip().upper(): value for key, value in row.items() if key}
+        yield {
+            "properties": {
+                name: columns.get(column) or "" for column, name in CSV_PROPERTIES.items()
+            },
+            "geometry": {"coordinates": [columns.get("LON"), columns.get("LAT")]},
+        }
 
 
 def _convert(
@@ -447,8 +556,8 @@ def normalize_street(street: str) -> str:
         return ""
 
     suffix_at = len(tokens) - 1
-    if len(tokens) > 1 and tokens[-1].upper() in DIRECTIONALS:
-        tokens[-1] = DIRECTIONALS[tokens[-1].upper()]
+    if len(tokens) > 1 and tokens[-1].upper() in DIRECTIONAL_WORDS:
+        tokens[-1] = DIRECTIONALS.get(tokens[-1].upper(), tokens[-1])
         suffix_at -= 1
 
     if suffix_at > 0 and tokens[suffix_at].upper() in STREET_SUFFIXES:
@@ -457,12 +566,12 @@ def normalize_street(street: str) -> str:
     # A leading directional is only a directional when a street name follows it.
     # Washington DC has streets actually named S and E, so "S Street" is S Street,
     # not South Street, while "N Main St" really is North Main Street. The tell is
-    # whether the next token is the suffix.
-    if (
-        len(tokens) > 2
-        and tokens[0].upper() in DIRECTIONALS
-        and tokens[1].upper() not in SUFFIX_WORDS
-    ):
+    # whether the next token is the suffix -- by position, and by being a suffix
+    # word. Position alone would turn "N BROADWAY NE" into "N Broadway"; the word
+    # alone would leave "SE MEADOW CT" unexpanded, because Meadow is the expansion
+    # of MDW, even though the suffix there is CT.
+    next_is_suffix = suffix_at == 1 and tokens[1].upper() in SUFFIX_WORDS
+    if len(tokens) > 2 and tokens[0].upper() in DIRECTIONALS and not next_is_suffix:
         tokens[0] = DIRECTIONALS[tokens[0].upper()]
 
     return titlecase(" ".join(tokens))
@@ -536,6 +645,30 @@ def _city_map(value: str) -> dict[str, str]:
             raise argparse.ArgumentTypeError(f"expected CODE=Name, got {pair.strip()!r}")
         mapping[code.strip().upper()] = name.strip()
     return mapping
+
+
+def _cap_per_postal_code(
+    candidates: list[dict[str, Any]],
+    cap: int,
+    generator: random.Random,
+) -> list[dict[str, Any]]:
+    """Keep at most ``cap`` randomly chosen candidates from each postal code.
+
+    Postal codes are visited in sorted order, and each postal code's addresses
+    are sorted before sampling, so the same seed keeps the same candidates
+    however the source happens to be ordered. Sorting only the postal codes is
+    not enough: sample() picks by position, so the same seed drew different
+    addresses from the same postal code whenever the source order changed.
+    """
+    by_postal_code: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for address in candidates:
+        by_postal_code[address["postal_code"]].append(address)
+
+    kept: list[dict[str, Any]] = []
+    for postal_code in sorted(by_postal_code):
+        pool = sorted(by_postal_code[postal_code], key=_sort_key)
+        kept.extend(generator.sample(pool, min(cap, len(pool))))
+    return kept
 
 
 def _balanced_sample(
