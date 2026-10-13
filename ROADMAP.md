@@ -8,6 +8,37 @@ Requests for specific cities, states or postal codes do not belong here. Those g
 [GitHub Issues](https://github.com/neosergio/random-address/issues), which is the workflow the README
 describes, and they are added gradually to keep the package small.
 
+## 2.3.0: even out the states
+
+The next release, planned for a few weeks after 2.2.0, once there is a sense of how the community
+uses it. Until then no further releases are planned. It is a data-only release: no API changes.
+
+2.2.0 left the dataset uneven. Thirteen states hold 50 addresses each (ID, IL, IN, LA, MN, NC, NM,
+OH, OR, PA, SC, TX, VA), while the other sixteen hold between about 160 and 330. Count is not the
+only gap: Connecticut has 196 addresses but only 2 cities and 3 postal codes, and Virginia's 50 are
+all in Arlington. For a test, a hundred addresses spread over five cities are worth more than two
+hundred in one neighbourhood.
+
+The plan, balancing rather than growing for its own sake, because the package is meant to stay light:
+
+- **A floor of 150 addresses per state.** States already above it keep what they have. Nothing is
+  removed: a user's test may depend on a particular postal code.
+- **A spread within each state:** at least 5 cities where the sources allow it, and
+  `--per-postal-code` so no postal code dominates.
+- **Only sources already verified as public domain.** The nine 2.2.0 sources are listed under
+  Attribution in the README; the earlier states come from the OpenAddresses sources credited there.
+  Any new source goes through the same check against the publisher's own terms.
+
+Expected size: about 1,300 more addresses, roughly 5,150 in total. The data file grows from about
+660 KB to about 880 KB, and the wheel from 118 KB to about 160 KB.
+
+Known limits, where the floor can be met but the spread cannot without a new source:
+
+- **Indiana** has a public domain source for Bloomington only, and **South Carolina** for Charleston
+  only (plus Johns Island).
+- **Virginia** needs a public domain source outside Arlington.
+- **Connecticut** needs sources for more cities than the two it has.
+
 ## Broader geographic coverage
 
 The dataset holds 29 states as of 2.2.0; COVERAGE.md has the current list. Twenty-two are still
@@ -74,10 +105,15 @@ is easy to spot.
 ### A dataset of a million addresses
 
 Every state and most postal codes could be covered tomorrow by importing Overture Maps or similar
-aggregates wholesale. Those aggregates mix licenses record by record, attribution-required and
-share-alike among them, so doing that would end the one promise this library makes. Coverage grows
-only from sources checked to be public domain; `--license` in the ingest script exists to make that
-check impossible to skip.
+aggregates wholesale. Two things rule that out, in this order:
+
+- **Licensing.** Those aggregates mix licenses record by record, attribution-required and
+  share-alike among them, so importing them would end the one promise this library makes: every
+  address is public domain. Coverage grows only from sources checked to be public domain;
+  `--license` in the ingest script exists to make that check impossible to skip.
+- **Weight.** The package is meant to stay light. Even with public domain sources, growth means
+  evening out the states and their spread of cities, not piling up volume. That is the 2.3.0 plan
+  above.
 
 ### Storing the dataset in SQLite
 
