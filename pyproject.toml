@@ -5,7 +5,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "random-address"
-version = "2.1.1"
+# The version lives in src/random_address/__init__.py alone; see
+# [tool.setuptools.dynamic] below. publish.yml checks the release tag against
+# the version the built wheel actually carries.
+dynamic = ["version"]
 description = "Retrieve real random US addresses, with coordinates, for tests and fixtures"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -65,6 +68,10 @@ Homepage = "https://github.com/neosergio/random-address"
 Repository = "https://github.com/neosergio/random-address"
 Issues = "https://github.com/neosergio/random-address/issues"
 Changelog = "https://github.com/neosergio/random-address/blob/main/CHANGELOG.md"
+
+
+[tool.setuptools.dynamic]
+version = { attr = "random_address.__version__" }
 
 
 [tool.setuptools.packages.find]

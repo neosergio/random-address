@@ -2,14 +2,18 @@
 
 from __future__ import annotations
 
+import math
 import random as _random
 from collections import Counter
 
-from . import _dataset
+from . import _dataset, _geo
 from ._dataset import Field, matches, normalize
-from .types import Address, Seed, Summary
+from .types import Address, Location, Seed, Summary
 
 _SHARED_GENERATOR = _random.Random()
+
+# A validated radius filter: the centre as (lat, lng), and the radius in km.
+_Radius = tuple[_geo.Point, float]
 
 
 class NoMatchingAddressError(LookupError):
@@ -26,6 +30,8 @@ def real_random_address(
     state: str | None = None,
     city: str | None = None,
     postal_code: str | None = None,
+    near: Location | None = None,
+    within_km: float | None = None,
     seed: Seed = None,
 ) -> Address:
     """Retrieve one real random address, optionally narrowed by filters.
@@ -37,6 +43,12 @@ def real_random_address(
         state: Two-letter state code, for example ``"CA"``.
         city: City name, for example ``"Newark"``.
         postal_code: Postal code, for example ``"94560"``.
+        near: A point to search around: a ``(lat, lng)`` pair, a coordinates
+            dictionary, or an address returned by an earlier call. Must be
+            given together with ``within_km``.
+        within_km: Keep only addresses within this many kilometres of
+            ``near``. An address passed as ``near`` is itself within any
+            radius, so it can be among the results.
         seed: Seed for a private random generator. Passing a seed makes the
             result reproducible without disturbing the global random state.
 
@@ -44,6 +56,8 @@ def real_random_address(
         An :class:`~random_address.types.Address` dictionary.
 
     Raises:
+        ValueError: If only one of ``near`` and ``within_km`` is given, or
+            either is out of range.
         NoMatchingAddressError: If no address matches the given filters.
 
     Example:
@@ -52,9 +66,12 @@ def real_random_address(
          'state': 'CA', 'postal_code': '94560',
          'coordinates': {'lat': 37.5261943, 'lng': -122.0304698}}
     """
-    pool = _pool(state=state, city=city, postal_code=postal_code)
+    radius = _radius(near, within_km)
+    pool = _pool(state=state, city=city, postal_code=postal_code, radius=radius)
     if not pool:
-        raise NoMatchingAddressError(f"No address matches {_describe(state, city, postal_code)}")
+        raise NoMatchingAddressError(
+            f"No address matches {_describe(state, city, postal_code, radius)}"
+        )
 
     return _generator(seed).choice(pool)
 
@@ -65,6 +82,8 @@ def real_random_addresses(
     state: str | None = None,
     city: str | None = None,
     postal_code: str | None = None,
+    near: Location | None = None,
+    within_km: float | None = None,
     seed: Seed = None,
     unique: bool = True,
 ) -> list[Address]:
@@ -75,6 +94,12 @@ def real_random_addresses(
         state: Two-letter state code, for example ``"CA"``.
         city: City name, for example ``"Newark"``.
         postal_code: Postal code, for example ``"94560"``.
+        near: A point to search around: a ``(lat, lng)`` pair, a coordinates
+            dictionary, or an address returned by an earlier call. Must be
+            given together with ``within_km``.
+        within_km: Keep only addresses within this many kilometres of
+            ``near``. An address passed as ``near`` is itself within any
+            radius, so it can be among the results.
         seed: Seed for a private random generator. The same seed and filters
             always produce the same addresses in the same order.
         unique: When true (the default) no address is returned twice. Pass
@@ -85,7 +110,8 @@ def real_random_addresses(
         when ``count`` is zero.
 
     Raises:
-        ValueError: If ``count`` is negative.
+        ValueError: If ``count`` is negative, if only one of ``near`` and
+            ``within_km`` is given, or if either is out of range.
         NoMatchingAddressError: If no address matches the given filters, or if
             ``unique`` is true and fewer than ``count`` addresses match.
 
@@ -95,12 +121,15 @@ def real_random_addresses(
     """
     if count < 0:
         raise ValueError("count must not be negative")
+    radius = _radius(near, within_km)
     if count == 0:
         return []
 
-    pool = _pool(state=state, city=city, postal_code=postal_code)
+    pool = _pool(state=state, city=city, postal_code=postal_code, radius=radius)
     if not pool:
-        raise NoMatchingAddressError(f"No address matches {_describe(state, city, postal_code)}")
+        raise NoMatchingAddressError(
+            f"No address matches {_describe(state, city, postal_code, radius)}"
+        )
 
     generator = _generator(seed)
     if not unique:
@@ -109,7 +138,7 @@ def real_random_addresses(
     if count > len(pool):
         raise NoMatchingAddressError(
             f"Only {len(pool)} distinct addresses match "
-            f"{_describe(state, city, postal_code)}, but {count} were requested. "
+            f"{_describe(state, city, postal_code, radius)}, but {count} were requested. "
             f"Pass unique=False to sample with replacement."
         )
     return generator.sample(pool, count)
@@ -160,6 +189,8 @@ def count(
     state: str | None = None,
     city: str | None = None,
     postal_code: str | None = None,
+    near: Location | None = None,
+    within_km: float | None = None,
 ) -> int:
     """Count the addresses matching the given filters, without drawing one.
 
@@ -179,6 +210,12 @@ def count(
             omitted.
         postal_code: Postal code, for example ``"94560"``. Counts every postal
             code when omitted.
+        near: A point to search around: a ``(lat, lng)`` pair, a coordinates
+            dictionary, or an address returned by an earlier call. Must be
+            given together with ``within_km``.
+        within_km: Keep only addresses within this many kilometres of
+            ``near``. An address passed as ``near`` is itself within any
+            radius, so it can be among the results.
 
     Returns:
         How many addresses match, or the size of the whole dataset when no
@@ -193,8 +230,34 @@ def count(
         50
         >>> count(state="ZZ")
         0
+
+    Raises:
+        ValueError: If only one of ``near`` and ``within_km`` is given, or
+            either is out of range. A bad radius is a mistake in the question,
+            not an answer of zero.
     """
-    return len(_pool(state=state, city=city, postal_code=postal_code))
+    radius = _radius(near, within_km)
+    return len(_pool(state=state, city=city, postal_code=postal_code, radius=radius))
+
+
+def _radius(near: Location | None, within_km: float | None) -> _Radius | None:
+    """Validate the radius filter, which takes both of its arguments or neither.
+
+    Either one alone is rejected rather than given a default. ``near`` with no
+    radius has no sensible meaning, and ``within_km`` with no centre would be a
+    filter that silently does nothing.
+    """
+    if near is None and within_km is None:
+        return None
+    if near is None:
+        raise ValueError("within_km needs near, the point to measure from")
+    if within_km is None:
+        raise ValueError("near needs within_km, the radius to search")
+    if isinstance(within_km, bool) or not isinstance(within_km, (int, float)):
+        raise ValueError(f"within_km must be a number, got {within_km!r}")
+    if not math.isfinite(within_km) or within_km < 0:
+        raise ValueError(f"within_km must be a non-negative number, got {within_km}")
+    return _geo.point(near), float(within_km)
 
 
 def _pool(
@@ -202,8 +265,29 @@ def _pool(
     state: str | None,
     city: str | None,
     postal_code: str | None,
+    radius: _Radius | None = None,
 ) -> tuple[Address, ...]:
     """Return every address matching all of the filters that were supplied."""
+    candidates = _attribute_pool(state=state, city=city, postal_code=postal_code)
+    if radius is None:
+        return candidates
+
+    centre, within_km = radius
+    return tuple(
+        address
+        for address in candidates
+        if _geo.distance_km(centre, (address["coordinates"]["lat"], address["coordinates"]["lng"]))
+        <= within_km
+    )
+
+
+def _attribute_pool(
+    *,
+    state: str | None,
+    city: str | None,
+    postal_code: str | None,
+) -> tuple[Address, ...]:
+    """Return every address matching the state, city and postal code filters."""
     supplied: tuple[tuple[Field, str | None], ...] = (
         ("state", state),
         ("city", city),
@@ -244,11 +328,19 @@ def _generator(seed: Seed) -> _random.Random:
     return _SHARED_GENERATOR if seed is None else _random.Random(seed)
 
 
-def _describe(state: str | None, city: str | None, postal_code: str | None) -> str:
+def _describe(
+    state: str | None,
+    city: str | None,
+    postal_code: str | None,
+    radius: _Radius | None = None,
+) -> str:
     """Render the active filters for an error message."""
     active = [
         f"{field}={value!r}"
         for field, value in (("state", state), ("city", city), ("postal_code", postal_code))
         if value is not None
     ]
+    if radius is not None:
+        (lat, lng), within_km = radius
+        active.append(f"within_km={within_km:g} of ({lat:g}, {lng:g})")
     return ", ".join(active) if active else "an empty dataset"

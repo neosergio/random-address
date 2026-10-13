@@ -6,6 +6,7 @@ import random
 from collections.abc import Callable
 from importlib import metadata
 from types import ModuleType
+from typing import Any, TypedDict
 
 import pytest
 
@@ -25,6 +26,15 @@ from random_address import (
 )
 
 from .conftest import InstallDataset, address
+
+
+class AttributeFilters(TypedDict, total=False):
+    """The string filters, so ``count(**filters)`` type-checks against them alone."""
+
+    state: str
+    city: str
+    postal_code: str
+
 
 ADDRESS_FIELDS = {"address1", "address2", "city", "state", "postal_code", "coordinates"}
 
@@ -243,7 +253,7 @@ class TestCount:
             {"state": "ZZ"},
         ],
     )
-    def test_is_always_a_non_negative_int(self, filters: dict[str, str]) -> None:
+    def test_is_always_a_non_negative_int(self, filters: AttributeFilters) -> None:
         result = count(**filters)
 
         assert type(result) is int
@@ -261,7 +271,7 @@ class TestCount:
             {"state": "CA", "city": "Arlington"},
         ],
     )
-    def test_counts_zero_when_nothing_matches(self, filters: dict[str, str]) -> None:
+    def test_counts_zero_when_nothing_matches(self, filters: AttributeFilters) -> None:
         assert count(**filters) == 0
 
     def test_no_match_counts_zero_rather_than_raising(self) -> None:
@@ -303,6 +313,106 @@ class TestCount:
         dataset()
 
         assert count() == 0
+
+
+class TestNear:
+    """The radius filter. Coordinates are on the equator, where 0.01 degrees of
+    longitude is about 1.11 km, so the expected distances are easy to check."""
+
+    @pytest.fixture
+    def points(self, dataset: InstallDataset) -> None:
+        dataset(
+            address(address1="centre", lat=0.0, lng=0.0),
+            address(address1="one km east", lat=0.0, lng=0.009),
+            address(address1="two km east", lat=0.0, lng=0.018, state="FL"),
+            address(address1="far away", lat=0.0, lng=1.0),
+        )
+
+    @pytest.mark.usefixtures("points")
+    def test_keeps_only_addresses_inside_the_radius(self) -> None:
+        found = real_random_addresses(2, near=(0.0, 0.0), within_km=1.5)
+
+        assert {result["address1"] for result in found} == {"centre", "one km east"}
+
+    @pytest.mark.usefixtures("points")
+    def test_count_agrees_with_the_lookup(self) -> None:
+        assert count(near=(0.0, 0.0), within_km=1.5) == 2
+        assert count(near=(0.0, 0.0), within_km=2.5) == 3
+        assert count(near=(0.0, 0.0), within_km=500) == 4
+
+    @pytest.mark.usefixtures("points")
+    def test_the_boundary_is_inclusive(self) -> None:
+        assert count(near=(0.0, 0.0), within_km=0) == 1
+
+    @pytest.mark.usefixtures("points")
+    def test_accepts_an_address_as_the_centre(self) -> None:
+        centre = real_random_address(near=(0.0, 0.0), within_km=0)
+
+        # An address is within any radius of itself, so it counts.
+        assert count(near=centre, within_km=1.5) == 2
+
+    @pytest.mark.usefixtures("points")
+    def test_accepts_a_coordinates_dict_as_the_centre(self) -> None:
+        assert count(near={"lat": 0.0, "lng": 0.0}, within_km=1.5) == 2
+
+    @pytest.mark.usefixtures("points")
+    def test_combines_with_the_other_filters(self) -> None:
+        assert count(state="CA", near=(0.0, 0.0), within_km=2.5) == 2
+        assert real_random_address(state="FL", near=(0.0, 0.0), within_km=2.5)["address1"] == (
+            "two km east"
+        )
+
+    @pytest.mark.usefixtures("points")
+    def test_nothing_in_range_raises_and_names_the_radius(self) -> None:
+        with pytest.raises(NoMatchingAddressError, match=r"within_km=0\.5 of \(10, 10\)"):
+            real_random_address(near=(10.0, 10.0), within_km=0.5)
+
+        assert count(near=(10.0, 10.0), within_km=0.5) == 0
+
+    @pytest.mark.usefixtures("points")
+    def test_too_few_in_range_raises_for_unique_samples(self) -> None:
+        with pytest.raises(NoMatchingAddressError, match="Only 2 distinct"):
+            real_random_addresses(3, near=(0.0, 0.0), within_km=1.5)
+
+    @pytest.mark.parametrize(
+        ("near", "within_km", "message"),
+        [
+            ((0.0, 0.0), None, "near needs within_km"),
+            (None, 5, "within_km needs near"),
+            ((0.0, 0.0), -1, "non-negative"),
+            ((0.0, 0.0), float("nan"), "non-negative"),
+            ((0.0, 0.0), float("inf"), "non-negative"),
+            ((0.0, 0.0), True, "must be a number"),
+            ((0.0, 0.0), "5", "must be a number"),
+            ((91.0, 0.0), 5, "latitude"),
+            ((0.0, -181.0), 5, "longitude"),
+            ((float("nan"), 0.0), 5, "latitude"),
+            ((0.0,), 5, "pair"),
+            ("0,0", 5, "pair"),
+            ({"lat": 0.0}, 5, "numeric"),
+            ({"lat": True, "lng": 0.0}, 5, "numeric"),
+            ({"coordinates": None}, 5, "'lat' and 'lng'"),
+        ],
+    )
+    def test_rejects_a_malformed_radius(self, near: Any, within_km: Any, message: str) -> None:
+        # A mistake in the question is a ValueError everywhere, never a count of 0.
+        for call in (
+            lambda: real_random_address(near=near, within_km=within_km),
+            lambda: real_random_addresses(1, near=near, within_km=within_km),
+            lambda: count(near=near, within_km=within_km),
+        ):
+            with pytest.raises(ValueError, match=message):
+                call()
+
+    def test_a_bad_radius_is_reported_even_for_zero_addresses(self) -> None:
+        with pytest.raises(ValueError, match="within_km needs near"):
+            real_random_addresses(0, within_km=5)
+
+    def test_works_against_the_real_dataset(self) -> None:
+        centre = real_random_address(state="VA", city="Arlington", seed=1)
+        nearby = real_random_addresses(5, near=centre, within_km=10, seed=1)
+
+        assert all(result["state"] in {"VA", "DC", "MD"} for result in nearby)
 
 
 class TestPackageSurface:

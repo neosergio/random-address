@@ -2,7 +2,7 @@
 
 This is a tool to retrieve a real address from a list of real, random US addresses. It is meant for testing: seeding fixtures, exercising address forms, and giving geolocation code something genuine to work with.
 
-The address data comes from the [OpenAddresses](https://openaddresses.io/) project, which collects address data published by national, state and local governments. Every address ships with the latitude and longitude given by that authoritative source, so each one resolves to a real point on the map without a geocoding round trip. All of the addresses are in the public domain, and they are deliberately not linked to people or businesses.
+The address data is published by state and local governments, mostly gathered through the [OpenAddresses](https://openaddresses.io/) project; where OpenAddresses points at a copy with no usable license, it comes straight from the government's own open data portal instead. Every address ships with the latitude and longitude given by that authoritative source, so each one resolves to a real point on the map without a geocoding round trip. All of the addresses are in the public domain, and they are deliberately not linked to people or businesses.
 
 The addresses were pulled from OpenAddresses where the "Required attribute" field was present and not "Yes". See "Attribution" below for a list of sources.
 
@@ -74,6 +74,30 @@ True
 Results are distinct by default. Pass `unique=False` to sample with replacement when you want
 more addresses than the filters can supply.
 
+### Addresses near a point
+
+`near` and `within_km` keep only the addresses within a radius of a point, measured as the
+crow flies. The point can be a `(lat, lng)` pair, a `{'lat': ..., 'lng': ...}` dictionary, or
+an address you already have, which is how you get a handful of neighbours for a delivery-zone
+or map test:
+
+```python
+>>> from random_address import count, real_random_address, real_random_addresses
+>>> home = real_random_address(state='VA', city='Arlington', seed=3)
+>>> home['address1'], home['postal_code']
+('1176 South Thomas Street', '22204')
+>>> neighbours = real_random_addresses(5, near=home, within_km=2, seed=3)
+>>> count(near=(38.8895, -77.0353), within_km=5)   # around the National Mall
+88
+```
+
+The radius combines with the other filters, and the address you pass as `near` is itself
+within any radius, so it can come back among the results. The two arguments go together:
+passing only one of them raises `ValueError` rather than quietly ignoring it.
+
+The dataset holds a few dozen addresses per city, so keep radii to a few kilometres around
+the places listed in [COVERAGE.md](COVERAGE.md); far from any of them, the answer is `0`.
+
 ### Inspecting the dataset
 
 ```python
@@ -83,7 +107,7 @@ more addresses than the filters can supply.
 >>> random_address.state_counts()
 {'AK': 174, 'AL': 193, 'AR': 190, 'AZ': 199, 'CA': 331, ...}
 >>> random_address.summary()
-{'total_addresses': 3400, 'unique_states': 20, 'unique_cities': 437, 'unique_postal_codes': 746}
+{'total_addresses': 3850, 'unique_states': 29, 'unique_cities': 470, 'unique_postal_codes': 891}
 ```
 
 `list_cities()`, `list_postal_codes()`, `city_counts()` and `postal_code_counts()` work the
@@ -98,7 +122,7 @@ same way.
 >>> import random_address
 
 >>> random_address.count()
-3400
+3850
 >>> random_address.count(state='CA')
 331
 >>> random_address.count(city='Arlington')
@@ -144,21 +168,27 @@ $ random-address
 
 $ random-address --state CA --count 2 --format json
 $ random-address --state FL --count 50 --format csv > fixtures.csv
+$ random-address --near 38.8895,-77.0353 --within-km 5 --count 3
+$ random-address count --state DC
+196
 $ random-address states
 $ random-address summary
 ```
 
+`count` takes the same filters as the default command, and prints `0` rather than failing when
+nothing matches.
+
 ## Functions Overview
 
-- `real_random_address(*, state=None, city=None, postal_code=None, seed=None)`: one address, optionally filtered.
-- `real_random_addresses(count=1, *, state=None, city=None, postal_code=None, seed=None, unique=True)`: several addresses.
-- `count(*, state=None, city=None, postal_code=None)`: how many addresses match, `0` if none do.
+- `real_random_address(*, state=None, city=None, postal_code=None, near=None, within_km=None, seed=None)`: one address, optionally filtered.
+- `real_random_addresses(count=1, *, state=None, city=None, postal_code=None, near=None, within_km=None, seed=None, unique=True)`: several addresses.
+- `count(*, state=None, city=None, postal_code=None, near=None, within_km=None)`: how many addresses match, `0` if none do.
 - `list_states()`, `list_cities()`, `list_postal_codes()`: the values present in the dataset.
 - `state_counts()`, `city_counts()`, `postal_code_counts()`: how many addresses each value has.
 - `summary()`: dataset-wide totals.
 
-The package ships type information (`py.typed`), so `Address` and `Coordinates` are available
-to type checkers and editors.
+The package ships type information (`py.typed`), so `Address`, `Coordinates` and `Location`
+are available to type checkers and editors.
 
 ## Upgrading from 1.x
 
@@ -182,7 +212,7 @@ renamed the `postalCode` key to `postal_code`.
 
 ## Attribution
 
-All data collected from the [OpenAddresses](https://openaddresses.io/) project, and is in the public domain.  Original sources:
+All of the data is in the public domain. Most of it was collected through the [OpenAddresses](https://openaddresses.io/) project; the sources marked † below were taken directly from the publisher's open data portal, because that is where the public domain dedication is published. Original sources:
 
 * City of Haddam (CT)
 * Ciy of Hartford (CT)
@@ -287,13 +317,24 @@ All data collected from the [OpenAddresses](https://openaddresses.io/) project, 
 * Pitkin County (CO)
 * Pubelo County (CO)
 * San Miguel County (CO)
-* City of Honolulu (HI)
 * Arlington County (VA)
 * Durham County (NC)
 * City of Portland (OR)
 * Texas Natural Resources Information System, StratMap Address Points (TX)
+* Cook County GIS, Cook County Address Points (IL) †
+* Ada County GIS, Ada County Address Points (ID) †
+* City of Baton Rouge and Parish of East Baton Rouge, Street Address (LA) †
+* City of Bloomington, Address Points (IN) †
+* City of Columbus, Address Points (OH) †
+* City of Scranton, 911 Address (PA)
+* City of Charleston, City Addresses (SC)
+* New Mexico Department of Finance and Administration, NM911 Address Points, distributed by RGIS (NM)
+* Metropolitan Council, MetroGIS Address Points (MN) †
 
 ## Requesting New Location Data
+
+[COVERAGE.md](COVERAGE.md) lists what the dataset holds today, state by state, and which states
+are still missing. It is generated from the data, so it is always current.
 
 If you need addresses for a specific **city**, **state**, or **postal code** that is not yet included in the dataset, please open a new [GitHub Issue](https://github.com/neosergio/random-address/issues) describing your request.
 
@@ -333,10 +374,11 @@ this library's are not. Pick whichever your test actually needs.
 ### Adding the addresses
 
 Maintainers fulfil a request by sampling from the matching [OpenAddresses](https://openaddresses.io/)
-GeoJSON file:
+source file, which may be line-delimited GeoJSON, a FeatureCollection or an OpenAddresses CSV,
+gzipped or not:
 
 ```bash
-$ python data/add_addresses.py nc.geojson --state NC --count 50 --seed 7 \
+$ python data/add_addresses.py nc.geojson --state NC --license public-domain --count 50 --seed 7 \
     --cities "Charlotte,Raleigh,Durham,Asheville,Wilmington"
 Selected 50 addresses for NC
   Asheville   3
@@ -365,10 +407,20 @@ normalized to `212 Heron Court Southwest` in `Bolivia` on the way in. Many publi
 code at all, in which case every record is rejected and you need a different source; the
 `statewide` source for a state usually carries one.
 
+`--license` is required and only accepts `CC0-1.0`, `PDDL-1.0` or `public-domain`. Stating it
+is the moment to check the publisher's terms rather than OpenAddresses' summary of them: a source
+that requires attribution, is share-alike, or states no license at all cannot be added, however
+good its data.
+
+`--per-postal-code N` stops any one postal code from contributing more than `N` addresses, so a
+sample spreads across a city instead of clustering where the source is densest. Line-delimited
+and CSV sources are streamed, so a multi-gigabyte statewide file does not need narrowing first.
+
 Use `--dry-run` to preview, and `--replace-state` to re-import a state from a better source.
 
 Because the dataset is one address per line, sorted, a request like this lands as a reviewable
-diff of 50 added lines. Please credit the source under Attribution when you add data.
+diff of 50 added lines. Afterwards, run `python data/coverage_report.py` to regenerate
+COVERAGE.md (the test suite fails until you do), and credit the source under Attribution.
 
 
 ## Contributing
@@ -388,6 +440,7 @@ Then:
 
 ```bash
 $ pytest              # run the tests
+$ RUN_PERFORMANCE_TESTS=1 pytest tests/test_performance.py   # opt-in timing budgets
 $ ruff check .        # lint
 $ ruff format .       # format
 ```

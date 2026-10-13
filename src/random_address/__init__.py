@@ -18,11 +18,12 @@ from .core import (
     state_counts,
     summary,
 )
-from .types import Address, Coordinates, Seed, Summary
+from .types import Address, Coordinates, Location, Seed, Summary
 
 __all__ = [
     "Address",
     "Coordinates",
+    "Location",
     "NoMatchingAddressError",
     "Seed",
     "Summary",
@@ -38,4 +39,4 @@ __all__ = [
     "summary",
 ]
 
-__version__ = "2.1.1"
+__version__ = "2.2.0"

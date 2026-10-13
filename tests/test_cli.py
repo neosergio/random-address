@@ -6,6 +6,7 @@ import json
 
 import pytest
 
+from random_address import count
 from random_address.cli import main
 
 from .conftest import InstallDataset, address
@@ -127,3 +128,67 @@ class TestListings:
             "unique_cities",
             "unique_postal_codes",
         }
+
+
+class TestCount:
+    def test_prints_the_same_number_as_the_library(
+        self, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        code, out, _ = run(capsys, "count", "--state", "VA", "--city", "Arlington")
+
+        assert code == 0
+        assert int(out) == count(state="VA", city="Arlington")
+
+    def test_without_filters_counts_the_whole_dataset(
+        self, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        _, out, _ = run(capsys, "count")
+
+        assert int(out) == count()
+
+    def test_no_match_prints_zero_and_succeeds(self, capsys: pytest.CaptureFixture[str]) -> None:
+        # Unlike get, a count of zero is an answer, not a failure.
+        code, out, _ = run(capsys, "count", "--state", "ZZ")
+
+        assert code == 0
+        assert out == "0"
+
+
+class TestNear:
+    @pytest.fixture(autouse=True)
+    def points(self, dataset: InstallDataset) -> None:
+        dataset(
+            address(address1="1 Centre Street", lat=0.0, lng=0.0),
+            address(address1="2 Nearby Street", lat=0.0, lng=0.009),
+            address(address1="3 Far Street", lat=0.0, lng=1.0),
+        )
+
+    def test_get_keeps_only_addresses_in_range(self, capsys: pytest.CaptureFixture[str]) -> None:
+        code, out, _ = run(capsys, "--near", "0,0", "--within-km", "1.5", "-n", "2")
+
+        assert code == 0
+        assert "Far" not in out
+        assert len(out.splitlines()) == 2
+
+    def test_count_accepts_the_radius(self, capsys: pytest.CaptureFixture[str]) -> None:
+        _, out, _ = run(capsys, "count", "--near", "0,0", "--within-km", "1.5")
+
+        assert out == "2"
+
+    def test_near_without_a_radius_is_a_usage_error(
+        self, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        code, _, err = run(capsys, "count", "--near", "0,0")
+
+        assert code == 2
+        assert "within_km" in err
+
+    @pytest.mark.parametrize("value", ["0", "a,b", "1,2,3"])
+    def test_malformed_near_is_rejected_by_the_parser(
+        self, capsys: pytest.CaptureFixture[str], value: str
+    ) -> None:
+        with pytest.raises(SystemExit) as raised:
+            main(["count", "--near", value, "--within-km", "1"])
+
+        assert raised.value.code == 2
+        assert "expected LAT,LNG" in capsys.readouterr().err

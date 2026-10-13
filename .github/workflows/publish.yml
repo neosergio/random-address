@@ -35,29 +35,33 @@ jobs:
         with:
           python-version: "3.13"
 
-      # The version is declared twice: pyproject.toml decides what PyPI
-      # publishes, and __version__ is what `random-address --version` reports.
-      # Bumping one and not the other ships a package that misreports itself,
-      # so the release tag has to agree with both.
-      - name: Check the release tag matches the package version
-        if: github.event_name == 'release'
-        run: |
-          set -euo pipefail
-          pip install -e .
-          tag="${GITHUB_REF_NAME#v}"
-          version=$(python -c \
-            "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")
-          dunder=$(python -c "import random_address; print(random_address.__version__)")
-          if [ "$tag" != "$version" ] || [ "$tag" != "$dunder" ]; then
-            echo "::error::Release tag is v$tag, pyproject.toml says $version, __version__ says $dunder."
-            echo "PyPI would publish $version, and the CLI would report $dunder. Fix them so all three agree."
-            exit 1
-          fi
-          echo "Tag v$tag matches pyproject.toml and __version__."
-
       - run: pip install build twine
       - run: python -m build
       - run: twine check --strict dist/*
+
+      # The version is written once, as __version__, and pyproject.toml reads it
+      # at build time. Comparing pyproject against __version__ would now compare
+      # a value with itself, so the guard checks what actually ships instead:
+      # the version in the built wheel's name, which is what PyPI publishes, and
+      # the version the installed wheel reports from `random-address --version`.
+      # Either disagreeing with the release tag stops the release.
+      - name: Check the release tag matches the built package
+        if: github.event_name == 'release'
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME#v}"
+          wheel=$(ls dist/*.whl)
+          built=$(basename "$wheel" | cut -d- -f2)
+          python -m venv /tmp/guard
+          /tmp/guard/bin/pip install --quiet "$wheel"
+          reported=$(cd /tmp && /tmp/guard/bin/random-address --version | awk '{print $2}')
+          if [ "$tag" != "$built" ] || [ "$tag" != "$reported" ]; then
+            echo "::error::Release tag is v$tag, the wheel is $built, the CLI reports $reported."
+            echo "PyPI would publish $built. Fix __version__ so all three agree."
+            exit 1
+          fi
+          echo "Tag v$tag matches the built wheel and the installed CLI."
+
       - uses: actions/upload-artifact@v4
         with:
           name: dist

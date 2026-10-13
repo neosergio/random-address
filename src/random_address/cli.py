@@ -13,6 +13,7 @@ from . import __version__
 from .core import (
     NoMatchingAddressError,
     city_counts,
+    count,
     postal_code_counts,
     real_random_addresses,
     state_counts,
@@ -60,9 +61,7 @@ def _build_parser() -> argparse.ArgumentParser:
             "together match addresses satisfying both."
         ),
     )
-    get.add_argument("--state", help="Two-letter state code, for example CA.")
-    get.add_argument("--city", help="City name, for example Newark.")
-    get.add_argument("--postal-code", dest="postal_code", help="Postal code, for example 94560.")
+    _add_filters(get)
     get.add_argument("-n", "--count", type=int, default=1, help="How many addresses to return.")
     get.add_argument(
         "--seed",
@@ -100,6 +99,17 @@ def _build_parser() -> argparse.ArgumentParser:
         )
         listing.set_defaults(handler=_make_listing_handler(counts))
 
+    counting = subparsers.add_parser(
+        "count",
+        help="Count the addresses matching the filters.",
+        description=(
+            "Count the addresses matching the filters, without drawing one. Prints 0, "
+            "and exits successfully, when nothing matches."
+        ),
+    )
+    _add_filters(counting)
+    counting.set_defaults(handler=_handle_count)
+
     stats = subparsers.add_parser(
         "summary",
         help="Show dataset-wide statistics.",
@@ -115,6 +125,39 @@ def _build_parser() -> argparse.ArgumentParser:
     stats.set_defaults(handler=_handle_summary)
 
     return parser
+
+
+def _add_filters(parser: argparse.ArgumentParser) -> None:
+    """Add the filters shared by ``get`` and ``count``, so the two cannot drift."""
+    parser.add_argument("--state", help="Two-letter state code, for example CA.")
+    parser.add_argument("--city", help="City name, for example Newark.")
+    parser.add_argument("--postal-code", dest="postal_code", help="Postal code, for example 94560.")
+    parser.add_argument(
+        "--near",
+        type=_lat_lng,
+        metavar="LAT,LNG",
+        help="Point to search around, for example 38.88,-77.10. Needs --within-km.",
+    )
+    parser.add_argument(
+        "--within-km",
+        dest="within_km",
+        type=float,
+        metavar="KM",
+        help="Keep only addresses within this many kilometres of --near.",
+    )
+
+
+def _lat_lng(value: str) -> tuple[float, float]:
+    """Parse ``LAT,LNG``. Range checks are left to the library, so both agree."""
+    lat, separator, lng = value.partition(",")
+    try:
+        if not separator:
+            raise ValueError
+        return float(lat), float(lng)
+    except ValueError:
+        raise argparse.ArgumentTypeError(
+            f"expected LAT,LNG, for example 38.88,-77.10, got {value!r}"
+        ) from None
 
 
 def _with_default_command(argv: Sequence[str]) -> list[str]:
@@ -133,6 +176,8 @@ def _handle_get(args: argparse.Namespace) -> str:
         state=args.state,
         city=args.city,
         postal_code=args.postal_code,
+        near=args.near,
+        within_km=args.within_km,
         seed=args.seed,
         unique=not args.repeat,
     )
@@ -156,6 +201,18 @@ def _make_listing_handler(
         return "\n".join(f"{value:<{width}}  {count}" for value, count in values.items())
 
     return handler
+
+
+def _handle_count(args: argparse.Namespace) -> str:
+    return str(
+        count(
+            state=args.state,
+            city=args.city,
+            postal_code=args.postal_code,
+            near=args.near,
+            within_km=args.within_km,
+        )
+    )
 
 
 def _handle_summary(args: argparse.Namespace) -> str:
